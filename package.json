@@ -1,0 +1,24 @@
+{
+  "name": "webhook-handler",
+  "version": "1.0.0",
+  "description": "Dank Memer's webhook handler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dank-Memer/webhook-server.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Dank-Memer/webhook-server/issues"
+  },
+  "homepage": "https://github.com/Dank-Memer/webhook-server#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "rethinkdbdash": "^2.3.31"
+  }
+}
