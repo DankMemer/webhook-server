@@ -2,29 +2,26 @@ const cluster = require('cluster')
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
-const fs = require('fs')
 const r = require('rethinkdbdash')()
 const config = require('./config.json')
 
-const cpusLength = require('os').cpus().length
 app.use(bodyParser.json())
 
-// DBL webhooks
+// discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
   if (req.headers.authorization) {
-    if (req.headers.authorization === config.dbl_webhook_secret) {
-      req.body.type === 'upvote' ? await addPocket(req.body.user, 25)
-        : console.log('not an upvote??')
+    if ((req.headers.authorization === config.dblorg_webhook_secret) && (res.body.type === 'upvote')) {
+      await addPocket(req.body.user, 25) 
       res.send({status: 200})
     } else {
-      res.send({status: 401, error: 'You done gone goofed up auth.'})
+      res.send({status: 401})
     }
   } else {
-    res.send({status: 403, error: 'Pls stop.'})
+    res.send({status: 403})
   }
 })
 
-// DBL webhooks
+// Patreon webhooks
 app.post('/patreonwebhook', async (req, res) => {
     if (req.headers['X-Patreon-Signature']) {
       if (req.headers['X-Patreon-Signature'] /*=== The HEX digest of the message body HMAC signed (using MD5) using the webhook's secret*/) {
@@ -35,10 +32,10 @@ app.post('/patreonwebhook', async (req, res) => {
         }
         res.send({status: 200})
       } else {
-        res.send({status: 401, error: 'You done gone goofed up auth.'})
+        res.send({status: 401})
       }
     } else {
-      res.send({status: 403, error: 'Pls stop.'})
+      res.send({status: 403})
     }
 })
 
@@ -71,32 +68,9 @@ function launchServer () {
   const http = require('http')
   http.createServer(app).listen(8200)
   console.log(`Server started on port 8200 pid: ${process.pid}`)
-}
+};
 
-if (cluster.isMaster) {
-  const workerNumber = cpusLength - 1
-  console.log(`Starting ${workerNumber} workers`)
-  for (let i = 0; i < workerNumber; i++) {
-    cluster.fork()
-  }
-  for (const id in cluster.workers) {
-    cluster.workers[id].on('message', masterHandleMessage)
-  }
-} else {
-  // worker
-  launchServer()
-}
-
-cluster.on('online', (worker) => {
-  console.log(`Worker ${worker.id} started`)
-})
-
-async function masterHandleMessage (message) {
-  //processes events from the workers, in master process
-  if(message === 'stuff') {
-    console.log(message);
-  }
-}
+launchServer();
 
 function formatTime (time) {
   let days = Math.floor(time % 31536000 / 86400)
