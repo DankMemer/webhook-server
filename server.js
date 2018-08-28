@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const app = express()
 const r = require('rethinkdbdash')()
 const config = require('./config.json')
+const crypto = require('crypto')
 
 app.use(bodyParser.json())
 
@@ -24,11 +25,11 @@ app.post('/dblwebhook', async (req, res) => {
 // Patreon webhooks
 app.post('/patreonwebhook', async (req, res) => {
     if (req.headers['X-Patreon-Signature']) {
-      if (req.headers['X-Patreon-Signature'] /*=== The HEX digest of the message body HMAC signed (using MD5) using the webhook's secret*/) {
+      if (validatePatreonIdentity(req)) {
         if (req.body.data.attributes.patron_status === "active_patron") {
             await addDonor(res.body);
         } else if (req.body.data.attributes.patron_status === "former_patron") {
-            await removeDonor();
+            await removeDonor(res.body);
         }
         res.send({status: 200})
       } else {
@@ -71,6 +72,14 @@ function launchServer () {
 };
 
 launchServer();
+
+validatePatreonIdentity(req) {
+  let hash = req.headers['X-Patreon-Signature'],
+      hmac = crypto.createHmac("md5", config.patreon_webhook_secret); 
+  hmac.update(res.body);
+  let crypted = hmac.digest("hex");
+  return crypted === hash;
+}
 
 function formatTime (time) {
   let days = Math.floor(time % 31536000 / 86400)
