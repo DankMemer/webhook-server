@@ -9,10 +9,11 @@ const fs = require('fs')
 let privateKey = fs.readFileSync(__dirname + '/key.pem')
 let certificate = fs.readFileSync(__dirname + '/cert.pem')
 
-app.use(bodyParser.json())
+app.use(bodyParser.text({type: '*/*'}))
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
+  req.body = JSON.parse(req.body)
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (res.body.type === 'upvote')) {
       await addPocket(req.body.user, 25) 
@@ -27,12 +28,15 @@ app.post('/dblwebhook', async (req, res) => {
 
 // Patreon webhooks
 app.post('/patreonwebhook', async (req, res) => {
-    if (req.headers['X-Patreon-Signature']) {
+    if (req.headers['x-patreon-signature']) {
       if (validatePatreonIdentity(req)) {
-        if (req.body.data.attributes.patron_status === "active_patron") {
-            await addDonor(res.body);
-        } else if (req.body.data.attributes.patron_status === "former_patron") {
-            await removeDonor(res.body);
+        req.body = JSON.parse(req.body)
+        if (req.headers['x-patreon-event'] === "members:pledge:create") {
+          await addDonor(req.body)
+        } else if (req.headers['x-patreon-event'] === "members:pledge:delete") {
+          await removeDonor(req.body)
+        } else if (req.headers['x-patreon-event'] === "members:pledge:update") {
+          await updateDonor(req.body)
         }
         res.send({status: 200})
       } else {
@@ -44,31 +48,55 @@ app.post('/patreonwebhook', async (req, res) => {
 })
 
 async function addDonor(body) {
-    if (!body.data.included[1].attributes.social_connections.discord || !body.data.included[1].attributes.social_connections.discord.user_id) {
-        return;
+  const user = body.included.find(inc => inc.type === 'user');
+    if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
+      return
     }
     return r.table('donors')
     .insert({
-      id: body.data.included[1].attributes.social_connections.discord.user_id,
+      id: user.attributes.social_connections.discord.user_id,
       donorAmount: body.data.attributes.currently_entitled_amount_cents / 100,
       guilds: [],
       guildRedeems: 0,
       firstDonationDate: body.data.attributes.pledge_relationship_start || r.now(),
       declinedSince: null,
-      totalPaid: donorAmount,
-      patreonID: body.data.included[1].attributes.id,
+      patreonID: user.id,
     }, { conflict: 'update' })
     .run()
 }
 
 function removeDonor(body) {
-    if (!body.data.included[1].attributes.id) {
-      return;
-    }
+    const user = body.included.find(inc => inc.type === 'user');
     return r.table('donors')
-      .getAll(body.data.included[1].attributes.id, {index: 'patreonID'})
+      .getAll(user.id, {index: 'patreonID'})
       .delete()
       .run()
+}
+
+async function updateDonor(body) {
+  const user = body.included.find(inc => inc.type === 'user');
+  let donor;
+  if (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id) {
+    donor = await r.table('donors').get(user.attributes.social_connections.discord.user_id).run()
+    //Add patreon id to old objects 
+    if (!donor.patreonID) {
+      donor.patreonID = user.id
+    }
+  } else {
+    donor = await r.table('donors').getAll(user.id, {index: 'patreonID'}).run().then(users => users[0])
+  }
+  if (!donor) {
+    return //Exploit to look at, if a old patron unlinked their discord account and decreased their pledge, they will be able to bypass this
+  }
+  //Reset redeemed guilds if the patron decreased the amount they pledge and they don't meet the requirements anymore
+  if ((donor.guilds.length > 3 && body.data.attributes.currently_entitled_amount_cents < 2000) 
+  || (donor.guilds.length > 0 && body.data.attributes.currently_entitled_amount_cents < 300)) {
+    donor.guilds = [],
+    donor.guildRedeems = 0
+  }
+  return r.table('donors')
+    .update({...donor, donorAmount: body.data.attributes.currently_entitled_amount_cents / 100})
+    .run()
 }
 
 function launchServer () {
@@ -80,9 +108,9 @@ function launchServer () {
 launchServer();
 
 function validatePatreonIdentity(req) {
-  let hash = req.headers['X-Patreon-Signature'],
+  let hash = req.headers['x-patreon-signature'],
       hmac = crypto.createHmac("md5", config.patreon_webhook_secret); 
-  hmac.update(res.body);
+  hmac.update(req.body);
   let crypted = hmac.digest("hex");
   return crypted === hash;
 }
