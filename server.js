@@ -5,6 +5,9 @@ const app = express()
 const r = require('rethinkdbdash')()
 const config = require('./config.json')
 const crypto = require('crypto')
+const fs = require('fs')
+let privateKey = fs.readFileSync(__dirname + '/key.pem')
+let certificate = fs.readFileSync(__dirname + '/cert.pem')
 
 app.use(bodyParser.json())
 
@@ -59,21 +62,24 @@ async function addDonor(body) {
 }
 
 function removeDonor(body) {
+    if (!body.data.included[1].attributes.id) {
+      return;
+    }
     return r.table('donors')
-      .getAll(id, {index: 'patreonID'})
+      .getAll(body.data.included[1].attributes.id, {index: 'patreonID'})
       .delete()
       .run()
 }
 
 function launchServer () {
-  const http = require('http')
-  http.createServer(app).listen(8200)
+  const https = require('https')
+  https.createServer({key: privateKey, cert: certificate}, app).listen(8200)
   console.log(`Server started on port 8200 pid: ${process.pid}`)
 };
 
 launchServer();
 
-validatePatreonIdentity(req) {
+function validatePatreonIdentity(req) {
   let hash = req.headers['X-Patreon-Signature'],
       hmac = crypto.createHmac("md5", config.patreon_webhook_secret); 
   hmac.update(res.body);
