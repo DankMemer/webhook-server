@@ -16,7 +16,7 @@ app.post('/dblwebhook', async (req, res) => {
   req.body = JSON.parse(req.body)
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (res.body.type === 'upvote')) {
-      await addPocket(req.body.user, 25) 
+      await addPocket(req.body.user, 250) 
       res.send({status: 200})
     } else {
       res.send({status: 401})
@@ -145,18 +145,6 @@ async function getUser (userID) {
       streak: {
         time: 0, // Time since last daily command
         streak: 0 // Total current streak
-      },
-      items: {
-        spin: 0, // Fidget Spinners
-        memes: 0, // Memes
-        tide: 0 // Tide Pods
-      },
-      upgrades: {
-        incr: 0, // Incremental upgrades
-        multi: 0, // Multiplier upgrades
-        vault: 0, // Bank Vault upgrades
-        shares: 0, // Sharing upgrades
-        luck: 0 // Luck upgrades
       },
       donor: false, // Donor status, false or $amount
       godMode: false, // No cooldowns, only for select few
