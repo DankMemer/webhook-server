@@ -7,6 +7,8 @@ const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
 
+app.use(bodyParser.text({type: '*/*'}))
+
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
   req.body = JSON.parse(req.body)
@@ -21,8 +23,6 @@ app.post('/dblwebhook', async (req, res) => {
     res.send({status: 403})
   }
 })
-
-app.use(bodyParser.text({type: '*/*'}))
 
 // Patreon webhooks
 app.post('/patreonwebhook', async (req, res) => {
