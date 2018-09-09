@@ -47,6 +47,10 @@ app.post('/patreonwebhook', async (req, res) => {
     }
 })
 
+app.use((req, res, next) => {
+    res.render('404')
+})
+
 async function addDonor(body) {
   const user = body.included.find(inc => inc.type === 'user');
     if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
