@@ -6,8 +6,6 @@ const r = require('rethinkdbdash')()
 const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
-let privateKey = fs.readFileSync(__dirname + '/key.pem')
-let certificate = fs.readFileSync(__dirname + '/cert.pem')
 
 app.use(bodyParser.text({type: '*/*'}))
 
@@ -104,8 +102,8 @@ async function updateDonor(body) {
 }
 
 function launchServer () {
-  const https = require('https')
-  https.createServer({key: privateKey, cert: certificate}, app).listen(8200)
+  const http = require('http')
+  http.createServer(app).listen(8200)
   console.log(`Server started on port 8200 pid: ${process.pid}`)
 };
 
