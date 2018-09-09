@@ -13,7 +13,7 @@ app.use(bodyParser.text({type: '*/*'}))
 app.post('/dblwebhook', async (req, res) => {
   req.body = JSON.parse(req.body)
   if (req.headers.authorization) {
-    if ((req.headers.authorization === config.dblorg_webhook_secret) && (res.body.type === 'upvote')) {
+    if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
       await addPocket(req.body.user, 250) 
       res.send({status: 200})
     } else {
