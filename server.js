@@ -45,9 +45,9 @@ app.post('/patreonwebhook', async (req, res) => {
     }
 })
 
-app.use((req, res, next) => {
-    res.render('404')
-})
+app.use(function (req, res, next) {
+  res.status(404).send({error: "404: You in the wrong part of town, boi."});
+});
 
 async function addDonor(body) {
   const user = body.included.find(inc => inc.type === 'user');
