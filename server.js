@@ -6,6 +6,15 @@ const r = require('rethinkdbdash')()
 const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
+const { join } = require('path')
+const audioCategories = fs.readdirSync(join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio')).filter(f => !f.includes('.'))
+const audioFiles = (() => {
+  const files = {}
+  for (const category of audioCategories) {
+    files[category] = fs.readdirSync(join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', category))
+  }
+  return files
+})()
 
 app.use(bodyParser.text({type: '*/*'}))
 
@@ -15,12 +24,12 @@ app.post('/dblwebhook', async (req, res) => {
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
       await addPocket(req.body.user, 250) 
-      res.send({status: 200})
+      res.status(200).send({status: 200})
     } else {
-      res.send({status: 401})
+      res.status(401).send({status: 401})
     }
   } else {
-    res.send({status: 403})
+    res.status(403).send({status: 403})
   }
 })
 
@@ -36,13 +45,25 @@ app.post('/patreonwebhook', async (req, res) => {
         } else if (req.headers['x-patreon-event'] === "members:pledge:update") {
           await updateDonor(req.body)
         }
-        res.send({status: 200})
+        res.status(200).send({status: 200})
       } else {
-        res.send({status: 401})
+        res.status(401).send({status: 401})
       }
     } else {
-      res.send({status: 403})
+      res.status(403).send({status: 403})
     }
+})
+
+app.get('/audio/:category/:file', (req, res) => {
+  if (!req.query.token) {
+    res.status(403).send({status: 403})
+  } else if (req.query.token !== config.memer_secret) {
+    res.status(401).send({status: 401})
+  } else if (!audioFiles[req.params.category] || !audioFiles[req.params.category].includes(`${req.params.file}.opus`)) {
+    return res.status(400).send({status: 400})
+  }
+  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', req.params.category, `${req.params.file}.opus`)
+  return res.sendFile(filePath)
 })
 
 app.use(function (req, res, next) {
