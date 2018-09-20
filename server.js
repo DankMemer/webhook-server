@@ -47,16 +47,12 @@ app.post('/patreonwebhook', async (req, res) => {
 })
 
 app.get('/audio/custom/:id/:file', (req, res) => {
-  console.log('does this even work')
   if (!req.query.token) {
-    console.log('triggered')
     res.status(403).send({status: 403})
   } else if (req.query.token !== config.memer_secret) {
-    console.log('angery')
     res.status(401).send({status: 401})
   } 
   const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${req.params.file}.opus`)
-  console.log(filePath);
   try {
     return res.status(200).sendFile(filePath)
   } catch (err) {
