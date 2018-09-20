@@ -7,14 +7,6 @@ const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
 const { join } = require('path')
-const audioCategories = fs.readdirSync(join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio')).filter(f => !f.includes('.'))
-const audioFiles = (() => {
-  const files = {}
-  for (const category of audioCategories) {
-    files[category] = fs.readdirSync(join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', category))
-  }
-  return files
-})()
 
 app.use(bodyParser.text({type: '*/*'}))
 
@@ -54,16 +46,22 @@ app.post('/patreonwebhook', async (req, res) => {
     }
 })
 
-app.get('/audio/:category/:file', (req, res) => {
+app.get('/audio/custom/:id/:file', (req, res) => {
+  console.log('does this even work')
   if (!req.query.token) {
+    console.log('triggered')
     res.status(403).send({status: 403})
   } else if (req.query.token !== config.memer_secret) {
+    console.log('angery')
     res.status(401).send({status: 401})
-  } else if (!audioFiles[req.params.category] || !audioFiles[req.params.category].includes(`${req.params.file}.opus`)) {
-    return res.status(400).send({status: 400})
+  } 
+  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${req.params.file}.opus`)
+  console.log(filePath);
+  try {
+    return res.status(200).sendFile(filePath)
+  } catch (err) {
+    return res.status(500).send({status: 500})
   }
-  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', req.params.category, `${req.params.file}.opus`)
-  return res.sendFile(filePath)
 })
 
 app.use(function (req, res, next) {
