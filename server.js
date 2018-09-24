@@ -7,6 +7,7 @@ const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
 const { join } = require('path')
+const { parse: parseQuerystring } = require('querystring')
 
 app.use(bodyParser.text({type: '*/*'}))
 
@@ -16,6 +17,21 @@ app.post('/dblwebhook', async (req, res) => {
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
       await addPocket(req.body.user, 250) 
+      res.status(200).send({status: 200})
+    } else {
+      res.status(401).send({status: 401})
+    }
+  } else {
+    res.status(403).send({status: 403})
+  }
+})
+
+// discordbotlist.com webhooks
+app.post('/dblistwebhook', async (req, res) => {
+  req.body = parseQuerystring(req.body)
+  if (req.headers['x-dbl-signature']) {
+    if ((req.headers['x-dbl-signature'].split(/\s+/)[0] === config.dblcom_webhook_secret) && ((Date.now() - 1000 * 120) < req.headers['x-dbl-signature'].split(/\s+/)[1])) {
+      await addPocket(req.body.id, 250, true) 
       res.status(200).send({status: 200})
     } else {
       res.status(401).send({status: 401})
@@ -144,42 +160,41 @@ function formatTime (time) {
   return `${days > 0 ? `${days}:` : ``}${(hours || days) > 0 ? `${hours}:` : ``}${minutes}:${seconds}`
 }
 
-async function getUser (userID) {
-  let user = await r.table('users').get(userID)
-
-  if (!user) {
-    user = (await r.table('users').insert({
-      id: userID, // User id/rethink id
-      pls: 1, // Total commands ran
-      lastCmd: Date.now(), // Last command time
-      lastRan: 'nothing', // Last command ran
-      spam: 0, // Spam means 2 commands in less than 1s
-      pocket: 0, // Coins not in bank account
-      bank: 0, // Coins in bank account
-      lost: 0, // Total coins lost
-      won: 0, // Total coins won
-      shared: 0, // Transferred to other players
-      streak: {
-        time: 0, // Time since last daily command
-        streak: 0 // Total current streak
-      },
-      donor: false, // Donor status, false or $amount
-      godMode: false, // No cooldowns, only for select few
-      vip: false, // Same cooldowns as donors without paying
-      upvoted: false // DBL voter status
-    }, {
-      returnChanges: true
-    }).run()).changes[0].new_val
+function getUser (userID, amount) {
+  return {
+    id: userID, // User id/rethink id
+    pls: 1, // Total commands ran
+    lastCmd: Date.now(), // Last command time
+    lastRan: 'nothing', // Last command ran
+    spam: 0, // Spam means 2 commands in less than 1s
+    pocket: amount || 0, // Coins not in bank account
+    bank: 0, // Coins in bank account
+    lost: 0, // Total coins lost
+    won: 0, // Total coins won
+    shared: 0, // Transferred to other players
+    streak: {
+      time: 0, // Time since last daily command
+      streak: 0 // Total current streak
+    },
+    donor: false, // Donor status, false or $amount
+    godMode: false, // No cooldowns, only for select few
+    vip: false, // Same cooldowns as donors without paying
+    upvoted: false, // DBL voter status,
+    dblUpvoted: false //discordbotlist.com voter status
   }
-
-  return user
 }
 
-async function addPocket (id, amount) {
-  let res = await getUser(id)
-  res.pocket += amount
-  res.upvoted = true
-
+async function addPocket (id, amount, dblcom) {
   return r.table('users')
-    .insert(res, { conflict: 'update' })
+    .get(id)
+    .update({
+      pocket: r.row('pocket').add(amount),
+      dblUpvoted: dblcom ? true : false,
+      upvoted: !dblcom
+    }).then(result => {
+      if (result.skipped) {
+        return r.table('users')
+          .insert(getUser(id, amount), { conflict: 'update' })
+      }
+    })
 }
