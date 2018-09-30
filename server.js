@@ -26,6 +26,17 @@ app.post('/dblwebhook', async (req, res) => {
   }
 })
 
+// discordlist.app webhooks
+app.post('/dlawebhook', async (req, res) => {
+  req.body = JSON.parse(req.body)
+  if (req.body.test === false) {
+    await addPocket(req.body.user, 250) 
+    res.status(200).send({status: 200})
+  } else {
+    res.status(403).send({status: 403})
+  }
+} 
+
 // discordbotlist.com webhooks
 app.post('/dblistwebhook', async (req, res) => {
   req.body = parseQuerystring(req.body)
