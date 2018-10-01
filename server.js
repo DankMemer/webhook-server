@@ -47,11 +47,11 @@ app.post('/patreonwebhook', async (req, res) => {
       if (validatePatreonIdentity(req)) {
         req.body = JSON.parse(req.body)
         if (req.headers['x-patreon-event'] === "members:pledge:create") {
-          await addDonor(req.body)
+          await addDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:delete") {
-          await removeDonor(req.body)
+          await removeDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:update") {
-          await updateDonor(req.body)
+          await updateDonor(req.body).catch(console.error)
         }
         res.status(200).send({status: 200})
       } else {
