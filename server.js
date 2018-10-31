@@ -8,6 +8,8 @@ const crypto = require('crypto')
 const fs = require('fs')
 const { join } = require('path')
 const { parse: parseQuerystring } = require('querystring')
+const { StatsD } = require('node-dogstatsd');
+const ddog = new StatsD();
 
 app.use(bodyParser.text({type: '*/*'}))
 
@@ -16,12 +18,15 @@ app.post('/dblwebhook', async (req, res) => {
   req.body = JSON.parse(req.body)
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
+      ddog.increment('webhooks.dblorg.upvote');
       await addPocket(req.body.user, 250) 
       res.status(200).send({status: 200})
     } else {
+      ddog.increment('webhooks.dblorg.noAuth');
       res.status(401).send({status: 401})
     }
   } else {
+    ddog.increment('webhooks.dblorg.noHeader');
     res.status(403).send({status: 403})
   }
 })
@@ -31,12 +36,15 @@ app.post('/dblistwebhook', async (req, res) => {
   req.body = parseQuerystring(req.body)
   if (req.headers['x-dbl-signature']) {
     if ((req.headers['x-dbl-signature'].split(/\s+/)[0] === config.dblcom_webhook_secret) && ((Date.now() - 1000 * 120) < req.headers['x-dbl-signature'].split(/\s+/)[1])) {
+      ddog.increment('webhooks.dblcom.upvote');
       await addPocket(req.body.id, 250, true) 
       res.status(200).send({status: 200})
     } else {
+      ddog.increment('webhooks.dblcom.noAuth');
       res.status(401).send({status: 401})
     }
   } else {
+    ddog.increment('webhooks.dblcom.noHeader');
     res.status(403).send({status: 403})
   }
 })
@@ -45,19 +53,25 @@ app.post('/dblistwebhook', async (req, res) => {
 app.post('/patreonwebhook', async (req, res) => {
     if (req.headers['x-patreon-signature']) {
       if (validatePatreonIdentity(req)) {
+        ddog.increment('webhooks.patreon.total');
         req.body = JSON.parse(req.body)
         if (req.headers['x-patreon-event'] === "members:pledge:create") {
+          ddog.increment('webhooks.patreon.create');
           await addDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:delete") {
+          ddog.increment('webhooks.patreon.delete');
           await removeDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:update") {
+          ddog.increment('webhooks.patreon.update');
           await updateDonor(req.body).catch(console.error)
         }
         res.status(200).send({status: 200})
       } else {
+        ddog.increment('webhooks.patreon.noAuth');
         res.status(401).send({status: 401})
       }
     } else {
+      ddog.increment('webhooks.patreon.noHeader');
       res.status(403).send({status: 403})
     }
 })
@@ -77,6 +91,7 @@ app.get('/audio/custom/:id/:file', (req, res) => {
 })
 
 app.use(function (req, res, next) {
+  ddog.increment('webhooks.404');
   res.status(404).send({error: "404: You in the wrong part of town, boi."});
 });
 
@@ -135,6 +150,7 @@ async function updateDonor(body) {
 function launchServer () {
   const http = require('http')
   http.createServer(app).listen(8585)
+  ddog.increment('webhooks.function.launchServer');
   console.log(`Server started on port 8585 pid: ${process.pid}`)
 };
 
