@@ -68,7 +68,7 @@ app.get('/audio/custom/:id/:file', (req, res) => {
   } else if (req.query.token !== config.memer_secret) {
     res.status(401).send({status: 401})
   } 
-  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${req.params.file}.opus`)
+  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${decodeURIComponent(req.params.file)}.opus`)
   try {
     return res.status(200).sendFile(filePath)
   } catch (err) {
