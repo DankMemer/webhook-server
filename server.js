@@ -7,7 +7,6 @@ const config = require('./config.json')
 const crypto = require('crypto')
 const fs = require('fs')
 const { join } = require('path')
-const { parse: parseQuerystring } = require('querystring')
 const { StatsD } = require('node-dogstatsd');
 const ddog = new StatsD();
 
@@ -27,24 +26,6 @@ app.post('/dblwebhook', async (req, res) => {
     }
   } else {
     ddog.increment('webhooks.dblorg.noHeader');
-    res.status(403).send({status: 403})
-  }
-})
-
-// discordbotlist.com webhooks
-app.post('/dblistwebhook', async (req, res) => {
-  req.body = parseQuerystring(req.body)
-  if (req.headers['x-dbl-signature']) {
-    if ((req.headers['x-dbl-signature'].split(/\s+/)[0] === config.dblcom_webhook_secret) && ((Date.now() - 1000 * 120) < req.headers['x-dbl-signature'].split(/\s+/)[1])) {
-      ddog.increment('webhooks.dblcom.upvote');
-      await addPocket(req.body.id, 250, true) 
-      res.status(200).send({status: 200})
-    } else {
-      ddog.increment('webhooks.dblcom.noAuth');
-      res.status(401).send({status: 401})
-    }
-  } else {
-    ddog.increment('webhooks.dblcom.noHeader');
     res.status(403).send({status: 403})
   }
 })
@@ -100,51 +81,41 @@ async function addDonor(body) {
     if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
       return
     }
-    return r.table('donors')
-    .insert({
-      id: user.attributes.social_connections.discord.user_id,
+    return _saveQuery(_fetchUserQuery(user.attributes.social_connections.discord.user_id).merge({ donor: {
       donorAmount: body.data.attributes.currently_entitled_amount_cents / 100,
       guilds: [],
       guildRedeems: 0,
       firstDonationDate: body.data.attributes.pledge_relationship_start || r.now(),
       declinedSince: null,
-      patreonID: user.id,
-    }, { conflict: 'update' })
-    .run()
+      patreonID: user.id
+    }})).run();
 }
 
 function removeDonor(body) {
     const user = body.included.find(inc => inc.type === 'user');
-    return r.table('donors')
-      .getAll(user.id, {index: 'patreonID'})
-      .delete()
-      .run()
+    return r.table('users').filter(function (doc) {
+      return doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
+    }).delete().run();
 }
 
 async function updateDonor(body) {
   const user = body.included.find(inc => inc.type === 'user');
   let donor;
   if (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id) {
-    donor = await r.table('donors').get(user.attributes.social_connections.discord.user_id).run()
-    //Add patreon id to old objects 
-    if (!donor.patreonID) {
-      donor.patreonID = user.id
-    }
+    donor = await r.table('users').get(user.attributes.social_connections.discord.user_id).run()
   } else {
-    donor = await r.table('donors').getAll(user.id, {index: 'patreonID'}).run().then(users => users[0])
-  }
-  if (!donor) {
-    return //Exploit to look at, if a old patron unlinked their discord account and decreased their pledge, they will be able to bypass this
+    donor = await r.table('users').filter(function (doc) {
+      return doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
+    }).run().then(users => users[0]);
   }
   //Reset redeemed guilds if the patron decreased the amount they pledge and they don't meet the requirements anymore
-  if ((donor.guilds.length > 3 && body.data.attributes.currently_entitled_amount_cents < 2000) 
-  || (donor.guilds.length > 0 && body.data.attributes.currently_entitled_amount_cents < 300)) {
-    donor.guilds = [],
-    donor.guildRedeems = 0
+  if ((donor.donor.guilds.length > 3 && body.data.attributes.currently_entitled_amount_cents < 2000) 
+  || (donor.donor.guilds.length > 0 && body.data.attributes.currently_entitled_amount_cents < 500)) {
+    donor.donor.guilds = [],
+    donor.donor.guildRedeems = 0
   }
-  return r.table('donors')
-    .update({...donor, donorAmount: body.data.attributes.currently_entitled_amount_cents / 100})
-    .run()
+  donor.donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
+  return r.table('users').get(donor.id).update({ donor: donor.donor }).run();
 }
 
 function launchServer () {
@@ -178,13 +149,18 @@ function formatTime (time) {
 
 function getUser (userID, amount) {
   return {
-    id: userID, // User id/rethink id
+    userID, // User id/rethink id
     pls: 1, // Total commands ran
     lastCmd: Date.now(), // Last command time
     lastRan: 'nothing', // Last command ran
-    spam: 0, // Spam means 2 commands in less than 1s
     pocket: amount || 0, // Coins not in bank account
     bank: 0, // Coins in bank account
+    experience: 0, // Total experience earned
+    inventory: {}, // Items the user has, an object of item ID's with the value being the quantity
+    activeitems: [], // Array of item ID's
+    level: 0, // The level the user is currently at
+    notifications: [], // Notifications object
+    title: '', // string
     lost: 0, // Total coins lost
     won: 0, // Total coins won
     shared: 0, // Transferred to other players
@@ -192,25 +168,26 @@ function getUser (userID, amount) {
       time: 0, // Time since last daily command
       streak: 0 // Total current streak
     },
-    donor: false, // Donor status, false or $amount
-    godMode: false, // No cooldowns, only for select few
-    vip: false, // Same cooldowns as donors without paying
-    upvoted: false, // DBL voter status,
-    dblUpvoted: false //discordbotlist.com voter status
-  }
+    upgrades: {
+      multi: 0,
+      luck: 0
+    },
+    ghostBlacklist: 0, // Integer, level of ghost-blacklist,
+    blacklisted: false,
+    upvoted: false, // DBL voter status
+    dblUpvoted: false, // discordbotlist.com voter status, DEPRECATED
+    donor: null
+  };
 }
 
-async function addPocket (id, amount, dblcom) {
-  return r.table('users')
-    .get(id)
-    .update({
-      pocket: r.row('pocket').add(amount),
-      dblUpvoted: dblcom ? true : false,
-      upvoted: !dblcom
-    }).then(result => {
-      if (result.skipped) {
-        return r.table('users')
-          .insert(getUser(id, amount), { conflict: 'update' })
-      }
-    })
+function _fetchUserQuery (id) {
+  return r.table('users').get(id).default(this.getUser(id));
+}
+
+function _saveQuery (data) {
+  return r.table('users').insert(data, { conflict: 'update' });
+}
+
+async function addPocket (id, amount) {
+  return _saveQuery(_fetchUserQuery(id).merge({ pocket: r.row('pocket').add(amount), upvoted: true })).run();
 }
