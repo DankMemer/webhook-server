@@ -53,16 +53,12 @@ app.post('/dblistwebhook', async (req, res) => {
 app.post('/patreonwebhook', async (req, res) => {
     if (req.headers['x-patreon-signature']) {
       if (validatePatreonIdentity(req)) {
-        ddog.increment('webhooks.patreon.total');
         req.body = JSON.parse(req.body)
         if (req.headers['x-patreon-event'] === "members:pledge:create") {
-          ddog.increment('webhooks.patreon.create');
           await addDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:delete") {
-          ddog.increment('webhooks.patreon.delete');
           await removeDonor(req.body).catch(console.error)
         } else if (req.headers['x-patreon-event'] === "members:pledge:update") {
-          ddog.increment('webhooks.patreon.update');
           await updateDonor(req.body).catch(console.error)
         }
         res.status(200).send({status: 200})
@@ -82,7 +78,7 @@ app.get('/audio/custom/:id/:file', (req, res) => {
   } else if (req.query.token !== config.memer_secret) {
     res.status(401).send({status: 401})
   } 
-  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${decodeURIComponent(req.params.file)}.opus`)
+  const filePath = join(process.cwd(), '..', 'Dank-Memer', 'src', 'assets', 'audio', 'custom', req.params.id, `${req.params.file}.opus`)
   try {
     return res.status(200).sendFile(filePath)
   } catch (err) {
@@ -100,6 +96,7 @@ async function addDonor(body) {
     if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
       return
     }
+    ddog.increment('webhooks.patreon.create');
     return r.table('donors')
     .insert({
       id: user.attributes.social_connections.discord.user_id,
@@ -115,6 +112,7 @@ async function addDonor(body) {
 
 function removeDonor(body) {
     const user = body.included.find(inc => inc.type === 'user');
+    ddog.increment('webhooks.patreon.delete');
     return r.table('donors')
       .getAll(user.id, {index: 'patreonID'})
       .delete()
@@ -125,6 +123,7 @@ async function updateDonor(body) {
   const user = body.included.find(inc => inc.type === 'user');
   let donor;
   if (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id) {
+    ddog.increment('webhooks.patreon.update');
     donor = await r.table('donors').get(user.attributes.social_connections.discord.user_id).run()
     //Add patreon id to old objects 
     if (!donor.patreonID) {
