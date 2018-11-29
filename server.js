@@ -146,9 +146,9 @@ function formatTime (time) {
   return `${days > 0 ? `${days}:` : ``}${(hours || days) > 0 ? `${hours}:` : ``}${minutes}:${seconds}`
 }
 
-function getUser (userID, amount) {
+function getUser (id, amount) {
   return {
-    userID, // User id/rethink id
+    id, // User id/rethink id
     pls: 1, // Total commands ran
     lastCmd: Date.now(), // Last command time
     lastRan: 'nothing', // Last command ran
