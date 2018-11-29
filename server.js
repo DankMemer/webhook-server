@@ -18,7 +18,7 @@ app.post('/dblwebhook', async (req, res) => {
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
       ddog.increment('webhooks.dblorg.upvote');
-      await addLootbox(req.body.user, 250) 
+      await addLootbox(req.body.user) 
       res.status(200).send({status: 200})
     } else {
       ddog.increment('webhooks.dblorg.noAuth');
@@ -187,7 +187,7 @@ function _saveQuery (data) {
   return r.table('users').insert(data, { conflict: 'update' });
 }
 
-async function addLootbox (id, amount) {
+async function addLootbox (id) {
   return _saveQuery(_fetchUserQuery(id).merge({ inventory: {
     normie: r.row('inventory').default({}).getField('normie').default(0).add(1)
   }, upvoted: true })).run();
