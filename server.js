@@ -91,9 +91,7 @@ async function addDonor(body) {
 function removeDonor(body) {
     const user = body.included.find(inc => inc.type === 'user');
     ddog.increment('webhooks.patreon.delete');
-    return r.table('users').filter(function (doc) {
-      return doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
-    })
+    return r.table('users').getAll(user.id, { index: 'patreonID' })
     .nth(0)
     .update({
       donor: null
