@@ -94,6 +94,7 @@ function removeDonor(body) {
     return r.table('users').filter(function (doc) {
       return doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
     })
+    .nth(0)
     .update({
       donor: null
     })
