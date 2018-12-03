@@ -93,7 +93,11 @@ function removeDonor(body) {
     ddog.increment('webhooks.patreon.delete');
     return r.table('users').filter(function (doc) {
       return doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
-    }).delete().run();
+    })
+    .update({
+      donor: null
+    })
+    .run()
 }
 
 async function updateDonor(body) {
