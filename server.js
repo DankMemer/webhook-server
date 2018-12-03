@@ -180,7 +180,7 @@ function getUser (id, amount) {
 }
 
 function _fetchUserQuery (id) {
-  return r.table('users').get(id).default(this.getUser(id));
+  return r.table('users').get(id).default(getUser(id));
 }
 
 function _saveQuery (data) {
