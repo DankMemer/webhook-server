@@ -21,11 +21,25 @@ app.post('/dblwebhook', async (req, res) => {
       await addLootbox(req.body.user) 
       res.status(200).send({status: 200})
     } else {
-      ddog.increment('webhooks.dblorg.noAuth');
       res.status(401).send({status: 401})
     }
   } else {
-    ddog.increment('webhooks.dblorg.noHeader');
+    res.status(403).send({status: 403})
+  }
+})
+
+// discordbotlist.com webhooks
+app.post('/dblistwebhook', async (req, res) => {
+  req.body = parseQuerystring(req.body)
+  if (req.headers['x-dbl-signature']) {
+    if ((req.headers['x-dbl-signature'].split(/\s+/)[0] === config.dblcom_webhook_secret) && ((Date.now() - 1000 * 120) < req.headers['x-dbl-signature'].split(/\s+/)[1])) {
+      ddog.increment('webhooks.dblcom.upvote');
+      await addLootbox(req.body.id)  
+      res.status(200).send({status: 200})
+    } else {
+      res.status(401).send({status: 401})
+    }
+  } else {
     res.status(403).send({status: 403})
   }
 })
