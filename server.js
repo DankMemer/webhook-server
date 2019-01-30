@@ -10,8 +10,11 @@ const fs = require('fs')
 const { join } = require('path')
 const { StatsD } = require('node-dogstatsd');
 const ddog = new StatsD();
+const axios = require('axios').default;
 
 app.use(bodyParser.text({type: '*/*'}))
+
+setInterval(() => checkDonors.catch(console.error), 60000 * 30);
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
@@ -229,4 +232,59 @@ function getNextMonthUTC () {
     date.setUTCMonth(date.getUTCMonth() + 1);
   }  
   return date.valueOf();
+}
+
+async function checkDonors () {
+  let patrons = [];
+  const loopThroughPatrons = async (url) => {
+    let res = await axios.get(url || `https://www.patreon.com/api/oauth2/v2/campaigns/${config.options.patreonCampaignID}/members?page%5B100%5D&include=user&fields%5Bmember%5D=full_name%2Cis_follower%2Clast_charge_date%2Clast_charge_status%2Clifetime_support_cents%2Ccurrently_entitled_amount_cents%2Cpatron_status&fields%5Buser%5D=social_connections&page%5Bcount%5D=100`, {headers: {'Authorization': `Bearer ${this.client.secrets.extServices.patreon}`}, responseType: 'json'});
+    if (!res.data) {
+      return;
+    }
+    res = res.data;
+    for (const patron of res.included) {
+      const pledge = patron.type === 'user' ? res.data.find(p => p.relationships.user.data.id === patron.id) : null;
+      if (pledge) {
+        patrons.push({ attributes: patron.attributes, payment_data: pledge ? pledge.attributes : null, id: patron.id });
+      }
+    }
+    if (res.links && res.links.next) {
+      await loopThroughPatrons(res.links.next);
+    } else {
+      return patrons;
+    }
+  };
+  await loopThroughPatrons();
+
+  let promises = [];
+  const storedDonors = await r.table('users').filter(r.hasFields('donor').and(r.row('donor').hasFields('patreonID'))).run();
+  patrons = patrons.filter(p => p.attributes.social_connections && 
+    p.attributes.social_connections.discord && 
+    p.attributes.social_connections.discord.user_id && 
+    !storedDonors.find(d => d.donor.patreonID === p.id));
+
+  for (let patron of patrons) {
+    let discord = patron.attributes.social_connections.discord;
+    await _saveQuery(_fetchUserQuery(discord.user_id).merge({ donor: {
+      donorAmount: patron.payment_data.currently_entitled_amount_cents / 100,
+      guilds: [],
+      guildRedeems: 0,
+      firstDonationDate: patron.payment_data.pledge_relationship_start || r.now(),
+      declinedSince: null,
+      patreonID: patron.id
+    }})).run().catch();
+    const channel = await this.client.bot.getDMChannel(discord.user_id);
+    channel.createMessage({ embed: {
+      color: 6732650,
+      title: 'You now have donor perks',
+      description: `Thanks for your donation!\nMost donor perks are automatic. If you want to redeem your coins, use \`pls redeem\`.\n`,
+      fields: patron.payment_data.currently_entitled_amount_cents > 300 ? [
+        {
+          name: 'You have access to Premium Memer!',
+          value: 'Since you have donated above $5, you have the option to set a server as premium for extra commands, including command tags, autoposting memes, music, and much more!\nTo do this, run `pls pserver add` in the server you want to activate premium perks for!'
+        }
+      ] : null,
+      footer: { text: 'ur a cool person' }
+    }}).catch(() => {})
+  }
 }
