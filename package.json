@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Dank-Memer/webhook-server#readme",
   "dependencies": {
+    "axios": "^0.18.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "node-dogstatsd": "0.0.7",
