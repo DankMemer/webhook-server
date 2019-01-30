@@ -94,7 +94,7 @@ function removeDonor(body) {
     return r.table('users').getAll(user.id, { index: 'patreonID' })
     .nth(0)
     .update({
-      donor: null
+      perksExpireAt: getNextMonthUTC()
     })
     .run()
 }
@@ -161,11 +161,17 @@ function getUser (id, amount) {
     inventory: {}, // Items the user has, an object of item ID's with the value being the quantity
     activeitems: [], // Array of item ID's
     level: 0, // The level the user is currently at
-    notifications: [], // Notifications object
+    notifications: [], // Notifications object,
+    transactions: [],
     title: '', // string
     lost: 0, // Total coins lost
     won: 0, // Total coins won
-    shared: 0, // Transferred to other players
+    shared: 0, // Transferred to other players,
+    stolenFromAt: 0,
+    wonLotteryAt: 0,
+    heistedFromAt: 0,
+    joinedHeistAt: 0,
+    perksExpireAt: 0,
     streak: {
       time: 0, // Time since last daily command
       streak: 0 // Total current streak
@@ -194,4 +200,18 @@ async function addLootbox (id) {
   return _saveQuery(_fetchUserQuery(id).merge({ inventory: {
     normie: r.row('inventory').default({}).getField('normie').default(0).add(1)
   }, upvoted: true })).run();
+}
+
+function getNextMonthUTC () {
+  let date = new Date();
+  date.setUTCHours(0);
+  date.setUTCMinutes(0);
+  date.setUTCMilliseconds(0);
+  date.setUTCDate(1);
+  if (date.getUTCMonth() === 11) {
+    date.setUTCFullYear(date.getUTCFullYear() + 1, 0);
+  } else {
+    date.setUTCMonth(date.getUTCMonth() + 1);
+  }  
+  return date.valueOf();
 }
