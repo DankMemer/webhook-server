@@ -22,5 +22,8 @@
     "express": "^4.16.3",
     "node-dogstatsd": "0.0.7",
     "rethinkdbdash": "^2.3.31"
+  },
+  "devDependencies": {
+    "semistandard": "^13.0.1"
   }
 }
