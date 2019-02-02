@@ -2,5 +2,8 @@
     "dblorg_webhook_secret": "",
     "patreon_webhook_secret": "",
     "memer_secret": "",
-    "patreonCampaignID": ""
+    "patreonCampaignID": "",
+    "discord_baseURL": "https://discordapp.com/api",
+    "patreon_webhookID": "",
+    "patreon_webhook_token": ""
 }
