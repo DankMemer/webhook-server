@@ -91,7 +91,23 @@ app.use(function (req, res, next) {
 });
 
 async function addDonor(body) {
-  const user = body.included.find(inc => inc.type === 'user');
+    const user = body.included.find(inc => inc.type === 'user');
+    sendPatreonWebhook({
+      title: 'Pledge Create',
+      color: 0x71f23e,
+      fields: [{
+        name: 'User',
+        value: user.attributes.full_name,
+        inline: true
+      }, {
+        name: 'Discord ID / Patreon ID',
+        value: (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id ? user.attributes.social_connections.discord.user_id : "`null`") + ` / ${user.id}`,
+        inline: true
+      }, {
+        name: 'Amount Pledged',
+        value: `${body.data.attributes.currently_entitled_amount_cents / 100}$`
+      }]
+    });
     if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
       return
     }
@@ -108,6 +124,22 @@ async function addDonor(body) {
 
 function removeDonor(body) {
     const user = body.included.find(inc => inc.type === 'user');
+    sendPatreonWebhook({
+      title: 'Pledge Delete',
+      color: 0xf73a33,
+      fields: [{
+        name: 'User',
+        value: user.attributes.full_name,
+        inline: true
+      }, {
+        name: 'Discord ID / Patreon ID',
+        value: (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id ? user.attributes.social_connections.discord.user_id : "`null`") + ` / ${user.id}`,
+        inline: true
+      }, {
+        name: 'Total Amount Pledged',
+        value: `${body.data.attributes.lifetime_support_cents / 100}$`
+      }]
+    });
     ddog.increment('webhooks.patreon.delete');
     return r.table('users').getAll(user.id, { index: 'patreonID' })
     .nth(0)
@@ -134,6 +166,22 @@ async function updateDonor(body) {
     donor.donor.guilds = [],
     donor.donor.guildRedeems = 0
   }
+  sendPatreonWebhook({
+    title: 'Pledge Update',
+    color: 0xf7dc32,
+    fields: [{
+      name: 'User',
+      value: user.attributes.full_name,
+      inline: true
+    }, {
+      name: 'Discord ID / Patreon ID',
+      value: (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id ? user.attributes.social_connections.discord.user_id : "`null`") + ` / ${user.id}`,
+      inline: true
+    }, {
+      name: 'Amount Pledged Update',
+      value: `${donor.donor.donorAmount}$ => ${body.data.attributes.lifetime_support_cents / 100}$`
+    }]
+  });
   donor.donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
   return r.table('users').get(donor.id).update({ donor: donor.donor }).run();
 }
@@ -255,8 +303,6 @@ async function checkDonors () {
     }
   };
   await loopThroughPatrons();
-
-  let promises = [];
   const storedDonors = await r.table('users').filter(r.hasFields('donor').and(r.row('donor').hasFields('patreonID'))).run();
   patrons = patrons.filter(p => p.attributes.social_connections && 
     p.attributes.social_connections.discord && 
@@ -287,4 +333,13 @@ async function checkDonors () {
       footer: { text: 'ur a cool person' }
     }}).catch(() => {})
   }
+}
+
+async function sendPatreonWebhook (content) {
+  let content = typeof content === 'object' ? { embeds: [content] } : { content };
+  return axios.post(`${config.discord_baseURL}/webhooks/${config.patreon_webhookID}/${config.patreon_webhook_token}?wait=true`, content, {
+    headers: {
+        'Content-Type': `application/json`,
+    }
+  }).catch(console.error);
 }
