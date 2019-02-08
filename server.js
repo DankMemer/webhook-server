@@ -12,7 +12,7 @@ const axios = require('axios').default;
 
 app.use(bodyParser.text({ type: '*/*' }));
 
-setInterval(() => checkDonors.catch(console.error), 60000 * 30);
+setInterval(() => checkDonors, 60000 * 30);
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
