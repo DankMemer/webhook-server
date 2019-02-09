@@ -285,7 +285,7 @@ function getNextMonthUTC () {
 async function checkDonors () {
   let patrons = [];
   const loopThroughPatrons = async (url) => {
-    let res = await axios.get(url || `https://www.patreon.com/api/oauth2/v2/campaigns/${config.options.patreonCampaignID}/members?page%5B100%5D&include=user&fields%5Bmember%5D=full_name%2Cis_follower%2Clast_charge_date%2Clast_charge_status%2Clifetime_support_cents%2Ccurrently_entitled_amount_cents%2Cpatron_status&fields%5Buser%5D=social_connections&page%5Bcount%5D=100`, { headers: { 'Authorization': `Bearer ${this.client.secrets.extServices.patreon}` }, responseType: 'json' });
+    let res = await axios.get(url || `https://www.patreon.com/api/oauth2/v2/campaigns/${config.patreonCampaignID}/members?page%5B100%5D&include=user&fields%5Bmember%5D=full_name%2Cis_follower%2Clast_charge_date%2Clast_charge_status%2Clifetime_support_cents%2Ccurrently_entitled_amount_cents%2Cpatron_status&fields%5Buser%5D=social_connections&page%5Bcount%5D=100`, { headers: { 'Authorization': `Bearer ${this.client.secrets.extServices.patreon}` }, responseType: 'json' });
     if (!res.data) {
       return;
     }
