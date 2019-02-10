@@ -177,7 +177,7 @@ async function updateDonor (body) {
       inline: true
     }, {
       name: 'Amount Pledged Update',
-      value: `${donor.donor.donorAmount}$ => ${body.data.attributes.lifetime_support_cents / 100}$`
+      value: `${donor.donor.donorAmount}$ => ${body.data.attributes.currently_entitled_amount_cents / 100}$`
     }]
   });
   donor.donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
