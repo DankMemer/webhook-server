@@ -9,10 +9,12 @@ const { join } = require('path');
 const { StatsD } = require('node-dogstatsd');
 const ddog = new StatsD();
 const axios = require('axios').default;
+const raven = require('raven');
+raven.config(config.sentry).install();
 
 app.use(bodyParser.text({ type: '*/*' }));
 
-setInterval(() => { checkDonors().catch(console.error) }, 60000 * 30);
+setInterval(() => { checkDonors().catch((err) => {logErrors(err)}) }, 60000 * 30);
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
@@ -52,11 +54,11 @@ app.post('/patreonwebhook', async (req, res) => {
     if (validatePatreonIdentity(req)) {
       req.body = JSON.parse(req.body);
       if (req.headers['x-patreon-event'] === 'members:pledge:create') {
-        await addDonor(req.body).catch(console.error);
+        await addDonor(req.body).catch((err) => {logErrors(err)});
       } else if (req.headers['x-patreon-event'] === 'members:pledge:delete') {
-        await removeDonor(req.body).catch(console.error);
+        await removeDonor(req.body).catch((err) => {logErrors(err)});
       } else if (req.headers['x-patreon-event'] === 'members:pledge:update') {
-        await updateDonor(req.body).catch(console.error);
+        await updateDonor(req.body).catch((err) => {logErrors(err)});
       }
       res.status(200).send({ status: 200 });
     } else {
@@ -79,6 +81,7 @@ app.get('/audio/custom/:id/:file', (req, res) => {
   try {
     return res.status(200).sendFile(filePath);
   } catch (err) {
+    logErrors(err)
     return res.status(500).send({ status: 500 });
   }
 });
@@ -145,6 +148,12 @@ function removeDonor (body) {
       perksExpireAt: getNextMonthUTC()
     })
     .run();
+}
+
+function logErrors (err) {
+  // May add webhooks to discord for this later, undecided right now
+  raven.captureException(err)
+  console.log(err)
 }
 
 async function updateDonor (body) {
@@ -318,7 +327,7 @@ async function checkDonors () {
       firstDonationDate: patron.payment_data.pledge_relationship_start || r.now(),
       declinedSince: null,
       patreonID: patron.id
-    } })).run().catch();
+    } })).run().catch((err) => {logErrors(err)});
     const channel = await this.client.bot.getDMChannel(discord.user_id);
     channel.createMessage({ embed: {
       color: 6732650,
@@ -331,7 +340,7 @@ async function checkDonors () {
         }
       ] : null,
       footer: { text: 'ur a cool person' }
-    } }).catch(() => {});
+    } }).catch((err) => {logErrors(err)});
   }
 }
 
@@ -341,5 +350,5 @@ async function sendPatreonWebhook (content) {
     headers: {
       'Content-Type': `application/json`
     }
-  }).catch(console.error);
+  }).catch((err) => {logErrors(err)});
 }
