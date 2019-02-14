@@ -14,7 +14,7 @@ raven.config(config.sentry).install();
 
 app.use(bodyParser.text({ type: '*/*' }));
 
-/*setInterval(() => { checkDonors().catch((err) => {logErrors(err)}) }, 60000 * 30);*/
+/* setInterval(() => { checkDonors().catch((err) => {logErrors(err)}) }, 60000 * 30); */
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
@@ -54,11 +54,11 @@ app.post('/patreonwebhook', async (req, res) => {
     if (validatePatreonIdentity(req)) {
       req.body = JSON.parse(req.body);
       if (req.headers['x-patreon-event'] === 'members:pledge:create') {
-        await addDonor(req.body).catch((err) => {logErrors(err)});
+        await addDonor(req.body).catch((err) => { logErrors(err); });
       } else if (req.headers['x-patreon-event'] === 'members:pledge:delete') {
-        await removeDonor(req.body).catch((err) => {logErrors(err)});
+        await removeDonor(req.body).catch((err) => { logErrors(err); });
       } else if (req.headers['x-patreon-event'] === 'members:pledge:update') {
-        await updateDonor(req.body).catch((err) => {logErrors(err)});
+        await updateDonor(req.body).catch((err) => { logErrors(err); });
       }
       res.status(200).send({ status: 200 });
     } else {
@@ -81,7 +81,7 @@ app.get('/audio/custom/:id/:file', (req, res) => {
   try {
     return res.status(200).sendFile(filePath);
   } catch (err) {
-    logErrors(err)
+    logErrors(err);
     return res.status(500).send({ status: 500 });
   }
 });
@@ -152,8 +152,8 @@ function removeDonor (body) {
 
 function logErrors (err) {
   // May add webhooks to discord for this later, undecided right now
-  raven.captureException(err)
-  console.log(err)
+  raven.captureException(err);
+  console.log(err);
 }
 
 async function updateDonor (body) {
@@ -339,5 +339,5 @@ async function sendPatreonWebhook (content) {
     headers: {
       'Content-Type': `application/json`
     }
-  }).catch((err) => {logErrors(err)});
+  }).catch((err) => { logErrors(err); });
 }
