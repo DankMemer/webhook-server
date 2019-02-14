@@ -14,7 +14,7 @@ raven.config(config.sentry).install();
 
 app.use(bodyParser.text({ type: '*/*' }));
 
-setInterval(() => { checkDonors().catch((err) => {logErrors(err)}) }, 60000 * 30);
+/*setInterval(() => { checkDonors().catch((err) => {logErrors(err)}) }, 60000 * 30);*/
 
 // discordbots.org webhooks
 app.post('/dblwebhook', async (req, res) => {
@@ -279,6 +279,7 @@ function getNextMonthUTC () {
   return date.valueOf();
 }
 
+/*
 async function checkDonors () {
   let patrons = [];
   const loopThroughPatrons = async (url) => {
@@ -331,7 +332,7 @@ async function checkDonors () {
     } }).catch((err) => {logErrors(err)});
   }
 }
-
+*/
 async function sendPatreonWebhook (content) {
   content = typeof content === 'object' ? { embeds: [content] } : { content };
   return axios.post(`${config.discord_baseURL}/webhooks/${config.patreon_webhookID}/${config.patreon_webhook_token}?wait=true`, content, {
