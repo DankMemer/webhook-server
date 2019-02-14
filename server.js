@@ -6,8 +6,6 @@ const r = require('rethinkdbdash')();
 const config = require('./config.json');
 const crypto = require('crypto');
 const { join } = require('path');
-const { StatsD } = require('node-dogstatsd');
-const ddog = new StatsD();
 const axios = require('axios').default;
 const raven = require('raven');
 raven.config(config.sentry).install();
@@ -21,7 +19,6 @@ app.post('/dblwebhook', async (req, res) => {
   req.body = JSON.parse(req.body);
   if (req.headers.authorization) {
     if ((req.headers.authorization === config.dblorg_webhook_secret) && (req.body.type === 'upvote')) {
-      ddog.increment('webhooks.dblorg.upvote');
       await addLootbox(req.body.user);
       res.status(200).send({ status: 200 });
     } else {
@@ -37,7 +34,6 @@ app.post('/dblistwebhook', async (req, res) => {
   req.body = parseQuerystring(req.body);
   if (req.headers['x-dbl-signature']) {
     if ((req.headers['x-dbl-signature'].split(/\s+/)[0] === config.dblcom_webhook_secret) && ((Date.now() - 1000 * 120) < req.headers['x-dbl-signature'].split(/\s+/)[1])) {
-      ddog.increment('webhooks.dblcom.upvote');
       await addLootbox(req.body.id);
       res.status(200).send({ status: 200 });
     } else {
@@ -62,11 +58,9 @@ app.post('/patreonwebhook', async (req, res) => {
       }
       res.status(200).send({ status: 200 });
     } else {
-      ddog.increment('webhooks.patreon.noAuth');
       res.status(401).send({ status: 401 });
     }
   } else {
-    ddog.increment('webhooks.patreon.noHeader');
     res.status(403).send({ status: 403 });
   }
 });
@@ -87,7 +81,6 @@ app.get('/audio/custom/:id/:file', (req, res) => {
 });
 
 app.use(function (req, res, next) {
-  ddog.increment('webhooks.404');
   res.status(404).send({ error: '404: You in the wrong part of town, boi.' });
 });
 
@@ -112,7 +105,6 @@ async function addDonor (body) {
   if (!user.attributes.social_connections || !user.attributes.social_connections.discord || !user.attributes.social_connections.discord.user_id) {
     return;
   }
-  ddog.increment('webhooks.patreon.create');
   return _saveQuery(_fetchUserQuery(user.attributes.social_connections.discord.user_id).merge({ donor: {
     donorAmount: body.data.attributes.currently_entitled_amount_cents / 100,
     guilds: [],
@@ -141,7 +133,6 @@ function removeDonor (body) {
       value: `${body.data.attributes.lifetime_support_cents / 100}$`
     }]
   });
-  ddog.increment('webhooks.patreon.delete');
   return r.table('users').getAll(user.id, { index: 'patreonID' })
     .nth(0)
     .update({
@@ -160,7 +151,6 @@ async function updateDonor (body) {
   const user = body.included.find(inc => inc.type === 'user');
   let donor;
   if (user.attributes.social_connections && user.attributes.social_connections.discord && user.attributes.social_connections.discord.user_id) {
-    ddog.increment('webhooks.patreon.update');
     donor = await r.table('users').get(user.attributes.social_connections.discord.user_id).run();
   } else {
     donor = await r.table('users').filter(function (doc) {
@@ -196,7 +186,6 @@ async function updateDonor (body) {
 function launchServer () {
   const http = require('http');
   http.createServer(app).listen(8585);
-  ddog.increment('webhooks.function.launchServer');
   console.log(`Server started on port 8585 pid: ${process.pid}`);
 }
 
