@@ -1,4 +1,5 @@
 const { parse } = require('querystring');
+const { addLootbox } = require('../db');
 
 module.exports = (app, config) =>
   app.post('/dblistwebhook', async (req, res) => {

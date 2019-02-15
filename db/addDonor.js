@@ -8,7 +8,7 @@ module.exports = async function addDonor (body) {
   const discordID = user.attributes.social_connections &&
     user.attributes.social_connections.discord &&
     user.attributes.social_connections.discord.user_id;
-  
+
   const { attributes } = body.data;
   if (attributes.currently_entitled_amount_cents === 0) {
     return;
@@ -17,18 +17,12 @@ module.exports = async function addDonor (body) {
   sendPatreonWebhook({
     title: 'Pledge Create',
     color: 0x71f23e,
-    fields: [ {
-      name: 'User',
-      value: user.attributes.full_name,
-      inline: true
-    }, {
-      name: 'Discord ID / Patreon ID',
-      value: `${discordID || '`null`'} / ${user.id}`,
-      inline: true
-    }, {
+    field: {
       name: 'Amount Pledged',
       value: `$${attributes.currently_entitled_amount_cents / 100}`
-    } ]
+    },
+    user,
+    discordID
   });
 
   if (discordID) {

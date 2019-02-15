@@ -3,7 +3,7 @@ const { addDonor, removeDonor, updateDonor } = require('../db');
 
 module.exports = (app, config) =>
   app.post('/patreonwebhook', async (req, res) => {
-    if (!validatePatreonIdentity(req.body, config.patreon_webhook_secret)) {
+    if (!validatePatreonIdentity(req, config.patreon_webhook_secret)) {
       return res.status(401).send({ status: 401 });
     }
 

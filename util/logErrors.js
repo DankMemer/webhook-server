@@ -9,4 +9,4 @@ module.exports = function logErrors (err) {
   // May add webhooks to discord for this later, undecided right now
   raven.captureException(err);
   console.log(err);
-}
+};

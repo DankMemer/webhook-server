@@ -14,7 +14,7 @@ module.exports = (app, config) =>
 
     if (body.type !== 'upvote') {
       res.status(400).send({ status: 401, message: `Unknown type ${body.type}` });
-      return logErrors(new Error(`[DBL Webhook] Unknown payload type "${type}"`));
+      return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
     await addLootbox(body.user);

@@ -1,4 +1,5 @@
 const r = require('./r.js');
+const { sendPatreonWebhook } = require('../util');
 
 module.exports = async function updateDonor (body) {
   const user = body.included.find(inc => inc.type === 'user');
@@ -26,18 +27,12 @@ module.exports = async function updateDonor (body) {
   sendPatreonWebhook({
     title: 'Pledge Update',
     color: 0xf7dc32,
-    fields: [ {
-      name: 'User',
-      value: user.attributes.full_name,
-      inline: true
-    }, {
-      name: 'Discord ID / Patreon ID',
-      value: `${discordID || '`null`'} / ${user.id}`,
-      inline: true
-    }, {
+    field: {
       name: 'Amount Pledged Update',
       value: `$${donor.donor.donorAmount} => $${body.data.attributes.currently_entitled_amount_cents / 100}`
-    } ]
+    },
+    user,
+    discordID
   });
 
   return r
@@ -45,4 +40,4 @@ module.exports = async function updateDonor (body) {
     .get(donor.id)
     .update({ donor })
     .run();
-}
+};

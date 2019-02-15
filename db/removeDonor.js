@@ -10,18 +10,12 @@ module.exports = function removeDonor (body) {
   sendPatreonWebhook({
     title: 'Pledge Delete',
     color: 0xf73a33,
-    fields: [ {
-      name: 'User',
-      value: user.attributes.full_name,
-      inline: true
-    }, {
-      name: 'Discord ID / Patreon ID',
-      value: `${discordID || '`null`'} / ${user.id}`,
-      inline: true
-    }, {
+    field: {
       name: 'Total Amount Pledged',
       value: `$${body.data.attributes.lifetime_support_cents / 100}`
-    } ]
+    },
+    user,
+    discordID
   });
 
   return r
