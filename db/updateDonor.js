@@ -10,8 +10,8 @@ module.exports = async function updateDonor (body) {
   const { donor } = discordID
     ? await r.table('users').get(discordID).run()
     : await r.table('users').filter(doc =>
-        doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
-      ).run().then(users => users[0]);
+      doc.hasFields('donor').and(doc('donor')('patreonID').eq(user.id))
+    ).run().then(users => users[0]);
 
   // Reset redeemed guilds if the patron decreased the amount they pledge and they don't meet the requirements anymore
   if (
