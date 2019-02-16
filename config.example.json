@@ -4,7 +4,7 @@
     "memer_secret": "",
     "patreonCampaignID": "",
     "discord_baseURL": "https://discordapp.com/api",
-    "patreon_webhookID": "",
-    "patreon_webhook_token": "",
+    "donor_webhookID": "",
+    "donor_webhook_token": "",
     "sentry": ""
 }

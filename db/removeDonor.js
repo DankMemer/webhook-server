@@ -1,4 +1,4 @@
-const { sendPatreonWebhook, getNextMonthUTC } = require('../util');
+const { sendWebhook, getNextMonthUTC } = require('../util');
 const r = require('./r.js');
 
 module.exports = function removeDonor (body) {
@@ -7,7 +7,7 @@ module.exports = function removeDonor (body) {
     user.attributes.social_connections.discord &&
     user.attributes.social_connections.discord.user_id;
 
-  sendPatreonWebhook({
+  sendWebhook({
     title: 'Pledge Delete',
     color: 0xf73a33,
     field: {

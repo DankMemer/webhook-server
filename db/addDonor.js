@@ -1,4 +1,4 @@
-const { sendPatreonWebhook } = require('../util');
+const { sendWebhook } = require('../util');
 const r = require('./r.js');
 const _saveQuery = require('./_saveQuery.js');
 const _fetchUserQuery = require('./_fetchUserQuery.js');
@@ -14,7 +14,7 @@ module.exports = async function addDonor (body) {
     return;
   }
 
-  sendPatreonWebhook({
+  sendWebhook({
     title: 'Pledge Create',
     color: 0x71f23e,
     field: {

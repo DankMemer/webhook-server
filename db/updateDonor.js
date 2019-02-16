@@ -1,5 +1,5 @@
 const r = require('./r.js');
-const { sendPatreonWebhook } = require('../util');
+const { sendWebhook } = require('../util');
 
 module.exports = async function updateDonor (body) {
   const user = body.included.find(inc => inc.type === 'user');
@@ -24,7 +24,7 @@ module.exports = async function updateDonor (body) {
 
   donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
 
-  sendPatreonWebhook({
+  sendWebhook({
     title: 'Pledge Update',
     color: 0xf7dc32,
     field: {
