@@ -21,8 +21,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## Built With
 
-* [Node.js](http://www.dropwizard.io/1.0.2/docs/) - The javascript runtime
-* [Rethinkdb](https://maven.apache.org/) - Reliable noSQL database
+* [Node.js](https://nodejs.org/en/) - The javascript runtime
+* [Rethinkdb](https://www.rethinkdb.com/) - Reliable noSQL database
 * [Express.js](https://expressjs.com/) - Web framework for node.js
 
 ## Authors
