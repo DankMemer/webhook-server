@@ -11,6 +11,6 @@ for (const endpoint of endpoints) {
   endpoint(app, config);
 }
 
-app.listen(8585, () =>
-  console.log('Server started on port 8585, pid:', process.pid)
+app.listen(config.port, () =>
+  console.log('Server started on port', config.port, 'pid:', process.pid)
 );
