@@ -57,7 +57,11 @@ module.exports = (app, config) =>
       return res.status(401).send({ status: 401 });
     }
 
-    await addLootbox(decodedJWT.id, item.name.split(' ')[0].toLowerCase()).catch(logErrors);
+    await addLootbox(
+      decodedJWT.id,
+      item.name.split(' ')[0].toLowerCase(),
+      item.quantity
+    ).catch(logErrors);
     sendWebhook({
       title: 'Meme Box Purchase',
       color: 0x169BD7,
