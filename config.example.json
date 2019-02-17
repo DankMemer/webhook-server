@@ -4,7 +4,12 @@
     "memer_secret": "",
     "patreonCampaignID": "",
     "discord_baseURL": "https://discordapp.com/api",
+    "paypalVerifyURL": "https://api.sandbox.paypal.com/v1/notifications/verify-webhook-signature",
     "donor_webhookID": "",
     "donor_webhook_token": "",
-    "sentry": ""
+    "sentry": "",
+    "paypalID": "",
+    "paypalSecret": "",
+    "paypalWebhookID": "",
+    "secret": ""
 }
