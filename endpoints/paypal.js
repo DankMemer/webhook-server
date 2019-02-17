@@ -44,7 +44,7 @@ module.exports = (app, config) =>
     const theoreticalTotal = item.quantity * Number(item.price);
 
     if (
-      theoreticalTotal !== subtotal ||
+      theoreticalTotal.toFixed(2) !== subtotal.toFixed(2) ||
       (subtotal - total) > MAXIMUM_DISCOUNT ||
       Prices[item.name] !== item.price ||
       total < MINIMUM_PURCHASE_AMOUNT
