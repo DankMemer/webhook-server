@@ -29,7 +29,7 @@ module.exports = async function updateDonor (body) {
     color: 0xf7dc32,
     field: {
       name: 'Amount Pledged Update',
-      value: `$${donor.donor.donorAmount} => $${body.data.attributes.currently_entitled_amount_cents / 100}`
+      value: `$${donor.donorAmount} => $${body.data.attributes.currently_entitled_amount_cents / 100}`
     },
     user,
     discordID
