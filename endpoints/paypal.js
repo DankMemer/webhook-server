@@ -63,7 +63,7 @@ module.exports = (app, config) =>
       item.quantity
     ).catch(logErrors);
     sendWebhook({
-      title: 'Meme Box Purchase',
+      title: `Meme box: ${paymentData.id}`,
       color: 0x169BD7,
       discordID: decodedJWT.id,
       user: paymentData.payer.payer_info,
