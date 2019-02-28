@@ -27,10 +27,10 @@ module.exports = async function updateDonor (body) {
   sendWebhook({
     title: 'Pledge Update',
     color: 0xf7dc32,
-    field: {
+    fields: [ {
       name: 'Amount Pledged Update',
       value: `$${donor.donorAmount} => $${body.data.attributes.currently_entitled_amount_cents / 100}`
-    },
+    } ],
     user,
     discordID
   });

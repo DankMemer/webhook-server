@@ -1,5 +1,4 @@
 const axios = require('axios').default;
-const logErrors = require('./logErrors.js');
 const config = require('../config.json');
 const auth = Buffer.from(`${config.paypalID}:${config.paypalSecret}`).toString('base64');
 
@@ -18,4 +17,8 @@ module.exports = (req, body) =>
         Authorization: `Basic ${auth}`
       }
     }
-  ).then(r => r.data).catch(logErrors);
+  ).then(r => r.data).catch(e => ({
+    status: `${e.response.status} ${e.response.statusText}`,
+    data: e.response.data,
+    verification_status: 'FUCKY_WUCKY'
+  }));

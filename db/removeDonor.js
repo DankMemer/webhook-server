@@ -10,10 +10,10 @@ module.exports = function removeDonor (body) {
   sendWebhook({
     title: 'Pledge Delete',
     color: 0xf73a33,
-    field: {
+    fields: [ {
       name: 'Total Amount Pledged',
       value: `$${body.data.attributes.lifetime_support_cents / 100}`
-    },
+    } ],
     user,
     discordID
   });

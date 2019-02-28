@@ -17,10 +17,10 @@ module.exports = async function addDonor (body) {
   sendWebhook({
     title: 'Pledge Create',
     color: 0x71f23e,
-    field: {
+    fields: [ {
       name: 'Amount Pledged',
       value: `$${attributes.currently_entitled_amount_cents / 100}`
-    },
+    } ],
     user,
     discordID
   });
