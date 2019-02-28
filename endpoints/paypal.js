@@ -24,10 +24,7 @@ module.exports = (app, config) =>
   app.post('/paypal', async (req, res) => {
     const body = JSON.parse(req.body);
     const validity = await validatePayPalIdentity(req, body);
-    if (
-      !validity ||
-      validity.verification_status !== 'SUCCESS'
-    ) {
+    if (!validity.isValid) {
       sendFailWebhook({
         description: `\`\`\`json\n${JSON.stringify(body).slice(0, 2048)}\n\`\`\``,
         fields: [ {
