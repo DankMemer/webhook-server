@@ -31,7 +31,7 @@ module.exports = (app, config) =>
           value: `\`\`\`json\n${JSON.stringify(validity, '', '  ')}\n\`\`\``
         }, {
           name: 'Order ID',
-          value: body.resource && body.resource.id
+          value: body.resource ? body.resource.id : 'Not supplied'
         } ]
       });
       return res.status(200).send({ status: 200 });
