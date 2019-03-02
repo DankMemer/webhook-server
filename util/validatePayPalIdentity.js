@@ -1,8 +1,11 @@
 const axios = require('axios').default;
 const crc32 = require('buffer-crc32');
 const { logErrors } = require('../util');
+const { parse } = require('url');
 const config = require('../config.json');
 const { createVerify } = require('crypto');
+
+const PAYPAL_HOST = 'api.paypal.com';
 
 module.exports = async (req, body) => {
   if (req.headers['paypal-auth-algo'] !== 'SHA256withRSA') {
@@ -12,13 +15,21 @@ module.exports = async (req, body) => {
     };
   }
 
-  const cert = await axios(req.headers['paypal-cert-url'])
+  const certURL = parse(req.headers['paypal-cert-url'] || '');
+  if (certURL.host !== PAYPAL_HOST) {
+    return {
+      isValid: false,
+      reason: `Expected certificate host "${PAYPAL_HOST}", received "${certURL.host}"`
+    };
+  }
+
+  const cert = await axios(certURL.href)
     .then(r => r.data)
     .catch(logErrors);
   if (!cert) {
     return {
       isValid: false,
-      reason: `Failed to GET certificate ${req.headers['paypal-cert-url']}`
+      reason: `Failed to GET certificate ${certURL.href}`
     };
   }
 

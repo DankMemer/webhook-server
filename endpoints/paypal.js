@@ -26,10 +26,12 @@ module.exports = (app, config) =>
     const validity = await validatePayPalIdentity(req, body);
     if (!validity.isValid) {
       sendFailWebhook({
-        description: `\`\`\`json\n${JSON.stringify(body).slice(0, 2048)}\n\`\`\``,
         fields: [ {
           name: 'Validity',
           value: `\`\`\`json\n${JSON.stringify(validity, '', '  ')}\n\`\`\``
+        }, {
+          name: 'Order ID',
+          value: body.resource && body.resource.id
         } ]
       });
       return res.status(200).send({ status: 200 });
