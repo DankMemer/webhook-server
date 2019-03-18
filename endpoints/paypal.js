@@ -136,11 +136,11 @@ module.exports = (app, config) =>
       return res.status(200).send({ status: 200 });
     }
 
-    // await addLootbox(
-    //   decodedJWT,
-    //   item.name.split(' ')[0].toLowerCase(),
-    //   Number(item.quantity)
-    // ).catch(logErrors);
+    await addLootbox(
+      decodedJWT,
+      item.name.split(' ')[0].toLowerCase(),
+      Number(item.quantity)
+    ).catch(logErrors);
 
     sendWebhook({
       title: `Meme box: ${paymentData.id}`,
