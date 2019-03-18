@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const config = require('./config.json');
 const endpoints = require('./endpoints');
 
+process.env.NODE_ENV = 'development';
+
 const app = express();
 
 app.use(bodyParser.text({ type: '*/*' }));

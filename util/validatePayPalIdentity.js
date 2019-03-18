@@ -5,7 +5,9 @@ const { parse } = require('url');
 const config = require('../config.json');
 const { createVerify } = require('crypto');
 
-const PAYPAL_HOST = 'api.paypal.com';
+const PAYPAL_HOST = process.env.NODE_ENV === 'production'
+  ? 'api.paypal.com'
+  : 'api.sandbox.paypal.com';
 
 module.exports = async (req, body) => {
   if (req.headers['paypal-auth-algo'] !== 'SHA256withRSA') {

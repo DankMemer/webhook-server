@@ -1,16 +1,14 @@
-const { validatePayPalIdentity, logErrors, decodeJWT, sendWebhook } = require('../util');
+const {
+  validatePayPalIdentity,
+  getBoxData,
+  logErrors,
+  decodeJWT,
+  sendWebhook
+} = require('../util');
 const { addLootbox } = require('../db');
 const axios = require('axios').default;
 const config = require('../config.json');
 const auth = Buffer.from(`${config.paypalID}:${config.paypalSecret}`).toString('base64');
-
-const MAXIMUM_DISCOUNT = 1.50;
-const MINIMUM_PURCHASE_AMOUNT = 1.95;
-const Prices = {
-  'Normie Box': '0.49',
-  'Dank Box': '3.99',
-  'Meme Box': '1.99'
-};
 
 const sendFailWebhook = (data) => sendWebhook({
   raw: {
@@ -20,9 +18,39 @@ const sendFailWebhook = (data) => sendWebhook({
   }
 });
 
+let Constants, boxes;
+getBoxData()
+  .then(data => (
+    { Constants, boxes } = data
+  ))
+  .catch(err => sendFailWebhook({
+    title: 'Failed to request box data',
+    description: `${err.response.statusCode}`
+  }));
+
+const recentlyReceived = new Set();
+
 module.exports = (app, config) =>
   app.post('/paypal', async (req, res) => {
     const body = JSON.parse(req.body);
+
+    const { id } = body;
+    if (recentlyReceived.has(id)) {
+      return sendFailWebhook({
+        title: 'Deflected duplicate webhook',
+        fields: [ {
+          name: 'ID',
+          value: id
+        } ]
+      });
+    } else {
+      recentlyReceived.add(id);
+      setTimeout(
+        recentlyReceived.delete.bind(recentlyReceived, id),
+        60e3
+      );
+    }
+
     const validity = await validatePayPalIdentity(req, body);
     if (!validity.isValid) {
       sendFailWebhook({
@@ -62,17 +90,17 @@ module.exports = (app, config) =>
       name: 'Theoretical total did not match provided total',
       data: { theoreticalTotal, subtotal }
     }, {
-      cond: (subtotal - total) > MAXIMUM_DISCOUNT,
+      cond: (subtotal - total) > Constants.MAXIMUM_DISCOUNT,
       name: 'Discount exceeded MAXIMUM_DISCOUNT',
-      data: { subtotal, total, MAXIMUM_DISCOUNT }
+      data: { subtotal, total, max: Constants.MAXIMUM_DISCOUNT }
     }, {
-      cond: Prices[item.name] !== item.unit_amount.value,
+      cond: boxes.find(b => b.name === item.name).price.toFixed(2) !== item.unit_amount.value,
       name: 'Box price did not match item price',
-      data: { price: Prices[item.name], providedPrice: item.unit_amount.value }
+      data: { price: boxes.find(b => b.name === item.name).price, providedPrice: item.unit_amount.value }
     }, {
-      cond: total < MINIMUM_PURCHASE_AMOUNT,
+      cond: total < Constants.MINIMUM_PURCHASE_AMOUNT,
       name: 'Minimum purchase amount did not meet requirement',
-      data: { total, MINIMUM_PURCHASE_AMOUNT }
+      data: { total, min: Constants.MINIMUM_PURCHASE_AMOUNT }
     } ];
 
     for (const condition of failConditions) {
@@ -108,11 +136,11 @@ module.exports = (app, config) =>
       return res.status(200).send({ status: 200 });
     }
 
-    await addLootbox(
-      decodedJWT,
-      item.name.split(' ')[0].toLowerCase(),
-      Number(item.quantity)
-    ).catch(logErrors);
+    // await addLootbox(
+    //   decodedJWT,
+    //   item.name.split(' ')[0].toLowerCase(),
+    //   Number(item.quantity)
+    // ).catch(logErrors);
 
     sendWebhook({
       title: `Meme box: ${paymentData.id}`,
