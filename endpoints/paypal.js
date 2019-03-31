@@ -47,7 +47,7 @@ module.exports = (app, config) =>
       recentlyReceived.add(id);
       setTimeout(
         recentlyReceived.delete.bind(recentlyReceived, id),
-        60e3
+        15 * 60 * 1000
       );
     }
 
