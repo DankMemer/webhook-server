@@ -11,14 +11,14 @@ module.exports = ({
         title,
         color,
         fields: [ {
+          name: `Discord ID, ${isPatreon ? 'Patreon' : 'PayPal'} ID`,
+          value: `${discordID || '`null`'}\n${user[isPatreon ? 'id' : 'payer_id']}`,
+          inline: true
+        }, {
           name: 'User',
           value: isPatreon
             ? user.attributes.full_name
             : `${user.name.given_name} ${user.name.surname}`,
-          inline: true
-        }, {
-          name: `Discord ID / ${isPatreon ? 'Patreon' : 'PayPal'} ID`,
-          value: `${discordID || '`null`'} / ${user[isPatreon ? 'id' : 'payer_id']}`,
           inline: true
         },
         ...fields ]
