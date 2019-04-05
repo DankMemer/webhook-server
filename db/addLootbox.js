@@ -7,6 +7,9 @@ module.exports = async function addLootbox (id, type = 'normie', amount = 1) {
     inventory: {
       [type]: r.row('inventory').default({}).getField(type).default(0).add(amount)
     },
-    upvoted: true
+    ...(type === 'normie' && amount === 1
+      ? { upvoted: true }
+      : { purchasedBox: Date.now() }
+    )
   })).run();
 };

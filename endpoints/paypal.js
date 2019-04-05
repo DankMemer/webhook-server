@@ -5,7 +5,7 @@ const {
   decodeJWT,
   sendWebhook
 } = require('../util');
-const { addLootbox } = require('../db');
+const { addLootbox, mongo } = require('../db');
 const axios = require('axios').default;
 const config = require('../config.json');
 const auth = Buffer.from(`${config.paypalID}:${config.paypalSecret}`).toString('base64');
@@ -34,7 +34,7 @@ module.exports = (app, config) =>
   app.post('/paypal', async (req, res) => {
     const body = JSON.parse(req.body);
 
-    const { id } = body;
+    const { id } = body.resource;
     if (recentlyReceived.has(id)) {
       return sendFailWebhook({
         title: 'Deflected duplicate webhook',
@@ -142,6 +142,10 @@ module.exports = (app, config) =>
       Number(item.quantity)
     ).catch(logErrors);
 
+    const {
+      email = 'None provided'
+    } = await mongo.collection('users').findOne({ _id: decodedJWT }) || {};
+
     sendWebhook({
       title: `Meme box: ${paymentData.id}`,
       color: 0x169BD7,
@@ -149,8 +153,21 @@ module.exports = (app, config) =>
       user: paymentData.payer,
       isPatreon: false,
       fields: [ {
+        name: '\u200b',
+        value: '\u200b',
+        inline: true
+      }, {
         name: 'Purchase',
-        value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''} ($${total.toFixed(2)} total)`
+        value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''} ($${total.toFixed(2)} total)`,
+        inline: true
+      }, {
+        name: 'E-Mail',
+        value: email,
+        inline: true
+      }, {
+        name: '\u200b',
+        value: '\u200b',
+        inline: true
       } ]
     });
 
