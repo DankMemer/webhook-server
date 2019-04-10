@@ -29,12 +29,24 @@ getBoxData()
   }));
 
 const recentlyReceived = new Set();
+const EVENT_TYPE = 'PAYMENT.CAPTURE.COMPLETED';
 
 module.exports = (app, config) =>
   app.post('/paypal', async (req, res) => {
     const body = JSON.parse(req.body);
-
     const { id } = body.resource;
+
+    if (body.event_type !== EVENT_TYPE) {
+      return sendFailWebhook({
+        title: 'Unknown Event Type',
+        fields: [
+          { name: 'Expected', value: EVENT_TYPE },
+          { name: 'Received', value: body.event_type }
+        ],
+        footer: { text: `Resource ID: ${id}` }
+      });
+    }
+
     if (recentlyReceived.has(id)) {
       return sendFailWebhook({
         title: 'Deflected duplicate webhook',
@@ -90,9 +102,14 @@ module.exports = (app, config) =>
       name: 'Theoretical total did not match provided total',
       data: { theoreticalTotal, subtotal }
     }, {
-      cond: (subtotal - total) > Constants.MAXIMUM_DISCOUNT,
-      name: 'Discount exceeded MAXIMUM_DISCOUNT',
-      data: { subtotal, total, max: Constants.MAXIMUM_DISCOUNT }
+      cond: (subtotal * (Constants.FLAT_DISCOUNT_PERCENTAGE / 100)).toFixed(2) !== (subtotal - total).toFixed(2),
+      name: 'Theoretical discount did not match provided discount',
+      data: {
+        total,
+        expected: (subtotal * (Constants.FLAT_DISCOUNT_PERCENTAGE / 100)).toFixed(2),
+        received: (subtotal - total).toFixed(2),
+        discountPercentage: Constants.FLAT_DISCOUNT_PERCENTAGE
+      }
     }, {
       cond: boxes.find(b => b.name === item.name).price.toFixed(2) !== item.unit_amount.value,
       name: 'Box price did not match item price',
