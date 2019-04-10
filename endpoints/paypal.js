@@ -170,20 +170,12 @@ module.exports = (app, config) =>
       user: paymentData.payer,
       isPatreon: false,
       fields: [ {
-        name: '\u200b',
-        value: '\u200b',
-        inline: true
-      }, {
         name: 'Purchase',
         value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''} ($${total.toFixed(2)} total)`,
         inline: true
       }, {
-        name: 'E-Mail',
-        value: email,
-        inline: true
-      }, {
-        name: '\u200b',
-        value: '\u200b',
+        name: 'Discord E-Mail, PayPal E-Mail',
+        value: `${email}\n${paymentData.payer.email_address}`,
         inline: true
       } ]
     });
