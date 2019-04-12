@@ -96,6 +96,14 @@ module.exports = (app, config) =>
     const total = Number(transaction.amount.value);
     const subtotal = Number(transaction.amount.breakdown.item_total.value);
     const theoreticalTotal = Number(item.quantity) * Number(item.unit_amount.value);
+    const discountPercent = await (async () => {
+      const flashDiscount = await mongo.collection('discounts').findOne();
+      const flashDiscountPercentage = flashDiscount ? flashDiscount.percent : 0;
+
+      return subtotal > Constants.MINIMUM_DISCOUNT_VALUE
+        ? Constants.FLAT_DISCOUNT_PERCENTAGE + flashDiscountPercentage
+        : flashDiscountPercentage;
+    })();
 
     const failConditions = [ {
       cond: theoreticalTotal.toFixed(2) !== subtotal.toFixed(2),
@@ -103,7 +111,7 @@ module.exports = (app, config) =>
       data: { theoreticalTotal, subtotal }
     }, {
       cond: subtotal > Constants.MINIMUM_DISCOUNT_VALUE &&
-        (subtotal * (Constants.FLAT_DISCOUNT_PERCENTAGE / 100)).toFixed(2) !== (subtotal - total).toFixed(2),
+        (subtotal * (discountPercent / 100)).toFixed(2) !== (subtotal - total).toFixed(2),
       name: 'Theoretical discount did not match provided discount',
       data: {
         total,
@@ -172,7 +180,7 @@ module.exports = (app, config) =>
       isPatreon: false,
       fields: [ {
         name: 'Purchase',
-        value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''} ($${total.toFixed(2)} total)`,
+        value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''}\n$${total.toFixed(2)} total, ${discountPercent}% off`,
         inline: true
       }, {
         name: 'Discord E-Mail, PayPal E-Mail',
