@@ -48,6 +48,7 @@ module.exports = (app, config) =>
     }
 
     if (recentlyReceived.has(id)) {
+      res.status(200).send();
       return sendFailWebhook({
         title: 'Deflected duplicate webhook',
         fields: [ {
@@ -177,7 +178,7 @@ module.exports = (app, config) =>
     } = await mongo.collection('users').findOne({ _id: decodedJWT }) || {};
 
     sendWebhook({
-      title: `Meme box: ${paymentData.id}`,
+      title: `Meme box: ${paymentData.id} (${id})`,
       color: 0x169BD7,
       discordID: decodedJWT,
       user: paymentData.payer,
