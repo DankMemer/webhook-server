@@ -100,6 +100,10 @@ module.exports = (app, config) =>
       const flashDiscount = await mongo.collection('discounts').findOne();
       const flashDiscountPercentage = flashDiscount ? flashDiscount.percent : 0;
 
+      if (item.name === 'Normie Box') {
+        return 0;
+      }
+
       return subtotal > Constants.MINIMUM_DISCOUNT_VALUE
         ? Constants.FLAT_DISCOUNT_PERCENTAGE + flashDiscountPercentage
         : flashDiscountPercentage;
