@@ -120,9 +120,9 @@ module.exports = (app, config) =>
       name: 'Theoretical discount did not match provided discount',
       data: {
         total,
-        expected: (subtotal * (Constants.FLAT_DISCOUNT_PERCENTAGE / 100)).toFixed(2),
+        expected: (subtotal * (discountPercent / 100)).toFixed(2),
         received: (subtotal - total).toFixed(2),
-        discountPercentage: Constants.FLAT_DISCOUNT_PERCENTAGE
+        discountPercentage: discountPercent
       }
     }, {
       cond: boxes.find(b => b.name === item.name).price.toFixed(2) !== item.unit_amount.value,
