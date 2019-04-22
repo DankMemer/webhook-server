@@ -98,7 +98,7 @@ module.exports = (app, config) =>
     const subtotal = Number(transaction.amount.breakdown.item_total.value);
     const theoreticalTotal = Number(item.quantity) * Number(item.unit_amount.value);
     const discountPercent = await (async () => {
-      const flashDiscount = await mongo.collection('discounts').findOne();
+      const flashDiscount = await mongo.collection('discounts').findOne({ expiry: { $gt: Date.now() } });
       const flashDiscountPercentage = flashDiscount ? flashDiscount.percent : 0;
 
       if (item.name === 'Normie Box') {
