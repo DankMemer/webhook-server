@@ -1,5 +1,6 @@
 const { addLootbox } = require('../db');
 const { logErrors } = require('../util');
+const recentlyReceived = new Set();
 
 module.exports = (app, config) =>
   app.post('/dblwebhook', async (req, res) => {
@@ -12,10 +13,20 @@ module.exports = (app, config) =>
 
     const body = JSON.parse(req.body);
 
+    if (recentlyReceived.has(body.user)) {
+      console.log('received duplicate', body.user); // temporary so we can find out whether this is actually real
+      return res.status(425).send({ status: 425 });
+    }
+
     if (body.type !== 'upvote') {
-      res.status(400).send({ status: 401, message: `Unknown type ${body.type}` });
+      res.status(400).send({ status: 400, message: `Unknown type ${body.type}` });
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
+
+    recentlyReceived.add(body.user);
+    setTimeout(() => {
+      recentlyReceived.remove(body.user);
+    }, 60 * 60 * 1000);
 
     await addLootbox(body.user);
     res.status(200).send({ status: 200 });
