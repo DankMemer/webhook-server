@@ -1,5 +1,9 @@
 const r = require('./r.js');
 const { sendWebhook } = require('../util');
+let mongo = require('./mongo.js');
+if (mongo instanceof Promise) {
+  mongo.then(res => (mongo = res));
+}
 
 module.exports = async function updateDonor (body) {
   const user = body.included.find(inc => inc.type === 'user');
@@ -22,18 +26,18 @@ module.exports = async function updateDonor (body) {
     donor.guildRedeems = 0;
   }
 
-  donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
-
-  sendWebhook({
-    title: 'Pledge Update',
-    color: 0xf7dc32,
-    fields: [ {
-      name: 'Amount Pledged Update',
-      value: `$${donor.donorAmount} => $${body.data.attributes.currently_entitled_amount_cents / 100}`
-    } ],
-    user,
-    discordID
+  await mongo.collection('patreonLogs').insertOne({
+    type: 'members:pledge:delete',
+    before: donor.donorAmount,
+    after: body.data.attributes.currently_entitled_amount_cents,
+    user: {
+      name: user.attributes.full_name,
+      patreonID: user.id,
+      discordID: discordID || null
+    }
   });
+
+  donor.donorAmount = body.data.attributes.currently_entitled_amount_cents / 100;
 
   return r
     .table('users')

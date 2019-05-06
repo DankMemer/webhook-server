@@ -25,7 +25,7 @@ getBoxData()
   ))
   .catch(err => sendFailWebhook({
     title: 'Failed to request box data',
-    description: `${err.response.statusCode}`
+    description: `${err.response ? err.response.statusCode : err.message}`
   }));
 
 const recentlyReceived = new Set();
@@ -48,14 +48,7 @@ module.exports = (app, config) =>
     }
 
     if (recentlyReceived.has(id)) {
-      res.status(200).send();
-      return sendFailWebhook({
-        title: 'Deflected duplicate webhook',
-        fields: [ {
-          name: 'ID',
-          value: id
-        } ]
-      });
+      return res.status(200).send();
     } else {
       recentlyReceived.add(id);
       setTimeout(
@@ -93,6 +86,8 @@ module.exports = (app, config) =>
     }
 
     const transaction = paymentData.purchase_units[0];
+    const payer = paymentData.payer;
+    const capture = transaction.payments.captures[0];
     const item = transaction.items[0];
     const total = Number(transaction.amount.value);
     const subtotal = Number(transaction.amount.breakdown.item_total.value);
@@ -177,21 +172,30 @@ module.exports = (app, config) =>
       email = 'None provided'
     } = await mongo.collection('users').findOne({ _id: decodedJWT }) || {};
 
-    sendWebhook({
-      title: `Meme box: ${paymentData.id} (${id})`,
-      color: 0x169BD7,
-      discordID: decodedJWT,
-      user: paymentData.payer,
-      isPatreon: false,
-      fields: [ {
-        name: 'Purchase',
-        value: `${item.quantity} ${item.name}${item.quantity > 1 ? 'es' : ''}\n$${total.toFixed(2)} total, ${discountPercent}% off`,
-        inline: true
-      }, {
-        name: 'Discord E-Mail, PayPal E-Mail',
-        value: `${email}\n${paymentData.payer.email_address}`,
-        inline: true
-      } ]
+    await mongo.collection('purchases').insertOne({
+      orderID: paymentData.id,
+      captureID: capture.id,
+      amount: ({
+        ...transaction.amount.breakdown,
+        total: transaction.amount.value
+      }),
+      payer: {
+        name: `${payer.name.given_name} ${payer.name.surname}`,
+        paypalEmail: payer.email_address,
+        discordEmail: email,
+        paypalID: payer.payer_id,
+        userID: decodedJWT,
+        userIDEncoded: transaction.custom_id,
+      },
+      item: {
+        name: item.name,
+        quantity: item.quantity,
+        price: item.unit_amount.value
+      },
+      times: {
+        create: paymentData.create_time,
+        update: paymentData.update_time
+      }
     });
 
     res.status(200).send({ status: 200 });

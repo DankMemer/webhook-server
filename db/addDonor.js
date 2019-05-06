@@ -2,6 +2,10 @@ const { sendWebhook } = require('../util');
 const r = require('./r.js');
 const _saveQuery = require('./_saveQuery.js');
 const _fetchUserQuery = require('./_fetchUserQuery.js');
+let mongo = require('./mongo.js');
+if (mongo instanceof Promise) {
+  mongo.then(res => (mongo = res));
+}
 
 module.exports = async function addDonor (body) {
   const user = body.included.find(inc => inc.type === 'user');
@@ -14,15 +18,14 @@ module.exports = async function addDonor (body) {
     return;
   }
 
-  sendWebhook({
-    title: 'Pledge Create',
-    color: 0x71f23e,
-    fields: [ {
-      name: 'Amount Pledged',
-      value: `$${attributes.currently_entitled_amount_cents / 100}`
-    } ],
-    user,
-    discordID
+  await mongo.collection('patreonLogs').insertOne({
+    type: 'members:pledge:create',
+    amount: attributes.currently_entitled_amount_cents,
+    user: {
+      name: user.attributes.full_name,
+      patreonID: user.id,
+      discordID: discordID || null
+    }
   });
 
   if (discordID) {
