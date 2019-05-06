@@ -15,7 +15,7 @@ module.exports = (app, config) =>
       const body = parse(req.body);
 
       if (recentlyReceived.has(body.id)) {
-        mongo.collection('duplicates').insertOne({ user: body.user, name: 'discordbotlist.com' });
+        mongo.collection('duplicates').insertOne({ user: body.id, name: 'discordbotlist.com' });
         return res.status(425).send({ status: 425 });
       }
 
