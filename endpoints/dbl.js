@@ -25,7 +25,7 @@ module.exports = (app, config) =>
 
     recentlyReceived.add(body.user);
     setTimeout(() => {
-      recentlyReceived.remove(body.user);
+      recentlyReceived.delete(body.user);
     }, 60 * 60 * 1000);
 
     await addLootbox(body.user);
