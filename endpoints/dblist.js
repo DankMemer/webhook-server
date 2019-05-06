@@ -1,5 +1,5 @@
 const { parse } = require('querystring');
-const { addLootbox } = require('../db');
+const { addLootbox, mongo } = require('../db');
 const recentlyReceived = new Set();
 
 module.exports = (app, config) =>
@@ -15,6 +15,7 @@ module.exports = (app, config) =>
       const body = parse(req.body);
 
       if (recentlyReceived.has(body.id)) {
+        mongo.collection('duplicates').insertOne({ user: body.user, name: 'discordbotlist.com' });
         return res.status(425).send({ status: 425 });
       }
 
