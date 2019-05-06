@@ -27,9 +27,9 @@ module.exports = async function updateDonor (body) {
   }
 
   await mongo.collection('patreonLogs').insertOne({
-    type: 'members:pledge:delete',
+    type: 'members:pledge:update',
     before: donor.donorAmount,
-    after: body.data.attributes.currently_entitled_amount_cents,
+    after: body.data.attributes.currently_entitled_amount_cents / 100,
     user: {
       name: user.attributes.full_name,
       patreonID: user.id,
