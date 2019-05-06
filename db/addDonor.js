@@ -20,7 +20,7 @@ module.exports = async function addDonor (body) {
 
   await mongo.collection('patreonLogs').insertOne({
     type: 'members:pledge:create',
-    amount: attributes.currently_entitled_amount_cents,
+    amount: attributes.currently_entitled_amount_cents / 100,
     user: {
       name: user.attributes.full_name,
       patreonID: user.id,
