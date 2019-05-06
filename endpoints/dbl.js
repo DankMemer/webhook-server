@@ -14,7 +14,6 @@ module.exports = (app, config) =>
     const body = JSON.parse(req.body);
 
     if (recentlyReceived.has(body.user)) {
-      console.log('received duplicate', body.user); // temporary so we can find out whether this is actually real
       return res.status(425).send({ status: 425 });
     }
 

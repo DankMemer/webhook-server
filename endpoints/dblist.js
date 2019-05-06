@@ -15,7 +15,6 @@ module.exports = (app, config) =>
       const body = parse(req.body);
 
       if (recentlyReceived.has(body.id)) {
-        console.log('received duplicate', body.id); // temporary so we can find out whether this is actually real
         return res.status(425).send({ status: 425 });
       }
 
