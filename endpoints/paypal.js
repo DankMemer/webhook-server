@@ -193,8 +193,8 @@ module.exports = (app, config) =>
         price: item.unit_amount.value
       },
       times: {
-        create: paymentData.create_time,
-        update: paymentData.update_time
+        create: new Date(paymentData.create_time).getTime(),
+        update: new Date(paymentData.update_time).getTime()
       }
     });
 
