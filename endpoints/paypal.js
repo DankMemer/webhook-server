@@ -111,8 +111,8 @@ module.exports = (app, config) =>
       data: { theoreticalTotal, subtotal }
     }, {
       cond: subtotal > Constants.MINIMUM_DISCOUNT_VALUE &&
-        (subtotal * (discountPercent / 100)).toFixed(2) !== (subtotal - total).toFixed(2),
-      name: 'Theoretical discount did not match provided discount',
+      (subtotal - total - 0.1) > (subtotal * (discountPercent / 100)),
+      name: 'Provided discount exceeded theoretical discount',
       data: {
         total,
         expected: (subtotal * (discountPercent / 100)).toFixed(2),
