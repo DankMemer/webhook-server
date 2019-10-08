@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 - RethinkDB
 
 ### Installing
-1. `git clone https://github.com/Dank-Memer/webhook-server.git`
+1. `git clone https://github.com/DankMemer/webhook-server.git`
 2. Create config.json
 3. `npm i`
 4. Run rethinkdb
@@ -29,7 +29,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 * **Paradox** - *Initial work* - [ParadoxOrigins](https://github.com/ParadoxOrigins)
 
-See also the list of [contributors](https://github.com/Dank-Memer/webhook-server/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/DankMemer/webhook-server/contributors) who participated in this project.
 
 ## License
 
