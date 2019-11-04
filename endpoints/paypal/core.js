@@ -87,7 +87,6 @@ module.exports = async (req, res) => {
 
   const transaction = body.resource.purchase_units[0];
   const payer = body.resource.payer;
-  const capture = transaction.payments.captures[0];
   const item = transaction.items[0];
   const total = Number(transaction.amount.value);
   const subtotal = Number(transaction.amount.breakdown.item_total.value);
@@ -183,7 +182,6 @@ module.exports = async (req, res) => {
 
   await mongo.collection('purchases').insertOne({
     orderID: id,
-    captureID: capture.id,
     amount: ({
       ...transaction.amount.breakdown,
       total: transaction.amount.value
