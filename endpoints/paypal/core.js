@@ -18,6 +18,13 @@ getBoxData()
     description: `${err.response ? err.response.statusCode : err.message}`
   }));
 
+const IGNORED_EVENTS = [
+  'PAYMENT.CAPTURE.PENDING',
+  'RISK.DISPUTE.CREATED',
+  'CUSTOMER.DISPUTE.CREATED',
+  'CUSTOMER.DISPUTE.UPDATED'
+];
+
 const eventSchema = {
   event_type: 'CHECKOUT.ORDER.APPROVED',
   event_version: '1.0',
@@ -28,6 +35,18 @@ const eventSchema = {
 module.exports = async (req, res) => {
   const body = JSON.parse(req.body);
   const { id } = body.resource;
+
+  if (IGNORED_EVENTS.includes(body.event_type)) {
+    return {
+      didAddBoxes: false,
+      resend: false,
+      data: body,
+      webhook: {
+        title: 'ignoring event type',
+        description: body.event_type
+      }
+    };
+  }
 
   for (const prop in eventSchema) {
     if (body[prop] !== eventSchema[prop]) {
