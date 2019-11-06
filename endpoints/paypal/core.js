@@ -5,7 +5,10 @@ const {
   sendWebhook
 } = require('../../util');
 const { addLootbox, mongo } = require('../../db');
+const config = require('../../config.json');
+const lighttp = require('lighttp');
 
+const auth = Buffer.from(`${config.paypalID}:${config.paypalSecret}`).toString('base64');
 const recentlyReceived = new Set();
 
 let Constants, boxes;
@@ -26,9 +29,9 @@ const IGNORED_EVENTS = [
 ];
 
 const eventSchema = {
-  event_type: 'CHECKOUT.ORDER.APPROVED',
+  event_type: 'PAYMENT.CAPTURE.COMPLETED',
   event_version: '1.0',
-  resource_type: 'checkout-order',
+  resource_type: 'capture',
   resource_version: '2.0'
 };
 
@@ -104,8 +107,25 @@ module.exports = async (req, res) => {
     };
   }
 
-  const transaction = body.resource.purchase_units[0];
-  const payer = body.resource.payer;
+  const paymentData = await lighttp.get(body.resource.links.find(link => link.rel === 'up').href)
+    .header('Authorization', `Basic ${auth}`)
+    .then(r => r.body)
+    .catch(e => e);
+
+  if (paymentData instanceof Error) {
+    return {
+      didAddBoxes: false,
+      resend: true,
+      webhook: {
+        title: 'failed to GET paymentData',
+        description: JSON.stringify(paymentData.result.body)
+      },
+      data: body
+    };
+  }
+
+  const transaction = paymentData.purchase_units[0];
+  const payer = paymentData.payer;
   const item = transaction.items[0];
   const total = Number(transaction.amount.value);
   const subtotal = Number(transaction.amount.breakdown.item_total.value);
@@ -161,7 +181,7 @@ module.exports = async (req, res) => {
             value: `\`\`\`json\n${JSON.stringify(condition, '', '  ')}\n\`\`\``
           }, {
             name: 'ID',
-            value: id
+            value: paymentData.id
           } ]
         },
         data: body
@@ -181,7 +201,7 @@ module.exports = async (req, res) => {
           value: `${transaction.custom_id}\n\`\`\`json\n${JSON.stringify(payer.name, '', '  ')}\n\`\`\``
         }, {
           name: 'ID',
-          value: id
+          value: paymentData.id
         } ]
       },
       data: body
@@ -201,6 +221,7 @@ module.exports = async (req, res) => {
 
   await mongo.collection('purchases').insertOne({
     orderID: id,
+    captureID: transaction.payments.captures[0],
     amount: ({
       ...transaction.amount.breakdown,
       total: transaction.amount.value
