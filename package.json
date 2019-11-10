@@ -21,6 +21,7 @@
     "body-parser": "^1.18.2",
     "buffer-crc32": "^0.2.13",
     "express": "^4.16.3",
+    "ioredis": "^4.14.1",
     "lighttp": "^1.2.0",
     "mongodb": "^3.2.2",
     "node-dogstatsd": "0.0.7",
