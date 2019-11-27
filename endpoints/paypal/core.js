@@ -145,7 +145,8 @@ module.exports = async (req, res) => {
       ? Constants.FLAT_DISCOUNT_PERCENTAGE + flashDiscountPercentage
       : flashDiscountPercentage;
   })();
-  ddog.increment(`paypal.totalMade`, total);
+  ddog.incrementBy(`paypal.totalMade`, total);
+  ddog.increment(`paypal.totalPurchased`);
 
   const failConditions = [ {
     cond: theoreticalTotal.toFixed(2) !== subtotal.toFixed(2),
