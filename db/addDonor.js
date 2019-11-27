@@ -2,6 +2,8 @@ const { sendWebhook } = require('../util');
 const r = require('./r.js');
 const _saveQuery = require('./_saveQuery.js');
 const _fetchUserQuery = require('./_fetchUserQuery.js');
+const { StatsD } = require('node-dogstatsd');
+const ddog = new StatsD();
 let mongo = require('./mongo.js');
 if (mongo instanceof Promise) {
   mongo.then(res => (mongo = res));
@@ -17,6 +19,8 @@ module.exports = async function addDonor (body) {
   if (attributes.currently_entitled_amount_cents === 0) {
     return;
   }
+  ddog.increment('patreon.newPledge');
+  ddog.incrementBy('patreon.amountNew', attributes.currently_entitled_amount_cents / 100);
 
   await mongo.collection('patreonLogs').insertOne({
     type: 'members:pledge:create',
