@@ -1,6 +1,8 @@
 const { addLootbox, mongo } = require('../db');
 const { logErrors } = require('../util');
 const recentlyReceived = new Set();
+const { StatsD } = require('node-dogstatsd');
+const ddog = new StatsD();
 
 module.exports = (app, config) =>
   app.post('/dblwebhook', async (req, res) => {
@@ -22,6 +24,9 @@ module.exports = (app, config) =>
       res.status(400).send({ status: 400, message: `Unknown type ${body.type}` });
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
+
+    ddog.increment(`webhooks.topgg`);
+    
 
     recentlyReceived.add(body.user);
     setTimeout(() => {

@@ -7,6 +7,8 @@ const {
 const { addLootbox, mongo } = require('../../db');
 const config = require('../../config.json');
 const lighttp = require('lighttp');
+const { StatsD } = require('node-dogstatsd');
+const ddog = new StatsD();
 
 const auth = Buffer.from(`${config.paypalID}:${config.paypalSecret}`).toString('base64');
 const recentlyReceived = new Set();
@@ -38,6 +40,7 @@ const eventSchema = {
 module.exports = async (req, res) => {
   const body = JSON.parse(req.body);
   const { id } = body.resource;
+  ddog.increment(`paypal.${body.event_type}`);
 
   if (IGNORED_EVENTS.includes(body.event_type)) {
     return {
@@ -142,6 +145,7 @@ module.exports = async (req, res) => {
       ? Constants.FLAT_DISCOUNT_PERCENTAGE + flashDiscountPercentage
       : flashDiscountPercentage;
   })();
+  ddog.increment(`paypal.totalMade`, total);
 
   const failConditions = [ {
     cond: theoreticalTotal.toFixed(2) !== subtotal.toFixed(2),
