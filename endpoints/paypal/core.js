@@ -4,7 +4,7 @@ const {
   getBoxData,
   sendWebhook
 } = require('../../util');
-const { addLootbox, mongo } = require('../../db');
+const { addLootbox, sendNotification, mongo } = require('../../db');
 const config = require('../../config.json');
 const lighttp = require('lighttp');
 const { StatsD } = require('node-dogstatsd');
@@ -194,8 +194,11 @@ module.exports = async (req, res) => {
     }
   }
 
-  const decodedJWT = decodeJWT(transaction.custom_id);
-  if (!decodedJWT) {
+  const idSegments = transaction.custom_id.split(':');
+  const customerID = decodeJWT(idSegments[0]);
+  let giftUserID = idSegments[1];
+
+  if (!customerID) {
     return {
       didAddBoxes: false,
       resend: false,
@@ -213,8 +216,27 @@ module.exports = async (req, res) => {
     };
   }
 
+  if (giftUserID) {
+    const isValid = await lighttp
+      .get(`https://discordapp.com/api/v7/users/${giftUserID}`)
+      .header('Authorization', `Bot ${config.botToken}`)
+      .then(() => true)
+      .catch(() => false);
+    if (!isValid) {
+      giftUserID = null;
+      await sendNotification(customerID, 'gift', 'The user ID you tried to send a gift to is invalid.', 'The boxes have instead been sent to your inventory.');
+    } else {
+      await sendNotification(giftUserID, 'gift', 'You received a gift!', `You received **${item.quantity} ${item.name}es** from ${customer.username}#${customer.discriminator}.`);
+    }
+  }
+
+  const customer = await lighttp
+    .get(`https://discordapp.com/api/v7/users/${customerID}`)
+    .header('Authorization', `Bot ${config.botToken}`)
+    .then(res => res.body);
+
   await addLootbox(
-    decodedJWT,
+    giftUserID || customerID,
     item.name.split(' ')[0].toLowerCase(),
     Number(item.quantity)
   );
@@ -222,11 +244,11 @@ module.exports = async (req, res) => {
   const {
     email = 'None provided',
     ip = []
-  } = await mongo.collection('users').findOne({ _id: decodedJWT }) || {};
+  } = await mongo.collection('users').findOne({ _id: customerID }) || {};
 
   await mongo.collection('purchases').insertOne({
     orderID: id,
-    captureID: transaction.payments.captures[0],
+    captureID: transaction.payments.captures[0].id,
     amount: ({
       ...transaction.amount.breakdown,
       total: transaction.amount.value
@@ -236,7 +258,8 @@ module.exports = async (req, res) => {
       paypalEmail: payer.email_address,
       discordEmail: email,
       paypalID: payer.payer_id,
-      userID: decodedJWT,
+      userID: customerID,
+      giftUserID,
       userIDEncoded: transaction.custom_id,
       ip
     },
@@ -255,7 +278,7 @@ module.exports = async (req, res) => {
     didAddBoxes: true,
     resend: false,
     webhook: {
-      title: `added boxes to ${decodedJWT}`,
+      title: `added boxes to ${giftUserID || customerID} ${giftUserID ? `(bought by ${customerID})` : ''}`,
       description: `\`\`\`json\n${JSON.stringify(item, '', '  ')}\n\`\`\``
     },
     data: body
