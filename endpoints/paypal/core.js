@@ -226,14 +226,14 @@ module.exports = async (req, res) => {
       giftUserID = null;
       await sendNotification(customerID, 'gift', 'The user ID you tried to send a gift to is invalid.', 'The boxes have instead been sent to your inventory.');
     } else {
+      const customer = await lighttp
+        .get(`https://discordapp.com/api/v7/users/${customerID}`)
+        .header('Authorization', `Bot ${config.botToken}`)
+        .then(res => res.body);
+
       await sendNotification(giftUserID, 'gift', 'You received a gift!', `You received **${item.quantity} ${item.name}es** from ${customer.username}#${customer.discriminator}.`);
     }
   }
-
-  const customer = await lighttp
-    .get(`https://discordapp.com/api/v7/users/${customerID}`)
-    .header('Authorization', `Bot ${config.botToken}`)
-    .then(res => res.body);
 
   await addLootbox(
     giftUserID || customerID,
