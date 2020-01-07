@@ -149,8 +149,8 @@ module.exports = async (req, res) => {
   ddog.increment(`paypal.totalPurchased`);
 
   const failConditions = [ {
-    cond: theoreticalTotal.toFixed(2) !== subtotal.toFixed(2),
-    name: 'Theoretical total did not match provided total',
+    cond: theoreticalTotal > subtotal,
+    name: 'Provided total is less than theoretical total',
     data: { theoreticalTotal, subtotal }
   }, {
     cond: subtotal > Constants.MINIMUM_DISCOUNT_VALUE &&
