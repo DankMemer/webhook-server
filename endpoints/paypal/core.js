@@ -72,26 +72,6 @@ module.exports = async (req, res) => {
     }
   }
 
-  if (recentlyReceived.has(id)) {
-    return {
-      didAddBoxes: false,
-      resend: false,
-      data: body,
-      webhook: {
-        title: 'Deflected duplicate webhook',
-        fields: [
-          { name: 'ID', value: id }
-        ]
-      }
-    };
-  } else {
-    recentlyReceived.add(id);
-    setTimeout(
-      recentlyReceived.delete.bind(recentlyReceived, id),
-      15 * 60 * 1000
-    );
-  }
-
   const validity = await validatePayPalIdentity(req, body);
   if (!validity.isValid) {
     return {
@@ -214,6 +194,26 @@ module.exports = async (req, res) => {
       },
       data: body
     };
+  }
+
+  if (recentlyReceived.has(id)) {
+    return {
+      didAddBoxes: false,
+      resend: false,
+      data: body,
+      webhook: {
+        title: 'Deflected duplicate webhook',
+        fields: [
+          { name: 'ID', value: id }
+        ]
+      }
+    };
+  } else {
+    recentlyReceived.add(id);
+    setTimeout(
+      recentlyReceived.delete.bind(recentlyReceived, id),
+      15 * 60 * 1000
+    );
   }
 
   if (giftUserID) {
