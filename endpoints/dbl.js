@@ -15,23 +15,12 @@ module.exports = (app, config) =>
 
     const body = JSON.parse(req.body);
 
-    if (recentlyReceived.has(body.user)) {
-      mongo.collection('duplicates').insertOne({ user: body.user, name: 'discordbots.org' });
-      return res.status(425).send({ status: 425 });
-    }
-
     if (body.type !== 'upvote') {
       res.status(400).send({ status: 400, message: `Unknown type ${body.type}` });
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
     ddog.increment(`webhooks.topgg`);
-    
-
-    recentlyReceived.add(body.user);
-    setTimeout(() => {
-      recentlyReceived.delete(body.user);
-    }, 60 * 60 * 1000);
 
     await addLootbox(body.user);
     res.status(200).send({ status: 200 });
