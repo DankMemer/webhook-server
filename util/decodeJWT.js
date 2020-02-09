@@ -3,8 +3,6 @@ const { cryptKeys } = require('../config.json');
 
 const [
   key,
-
-  // TODO: make initVector unique per boot, share with dankmemer.lol over Redis
   initVector
 ] = cryptKeys.map(key => Buffer.from(key, 'base64'));
 

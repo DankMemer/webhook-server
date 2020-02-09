@@ -1,4 +1,7 @@
-const { redisString } = require('../config.json');
+const { dbs } = require('../config.json');
 
 const Redis = require('ioredis');
-module.exports = new Redis(redisString);
+module.exports = new Redis({
+  host: dbs.host,
+  password: dbs.redisPassword
+});
