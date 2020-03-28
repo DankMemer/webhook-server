@@ -5,25 +5,25 @@ const { StatsD } = require('node-dogstatsd');
 const ddog = new StatsD();
 
 module.exports = (app, config) =>
-  app.post('/dblwebhook', async (req, res) => {
+  app.post('/bfd', async (req, res) => {
     if (
       !req.headers.authorization ||
-      req.headers.authorization !== config.dblorg_webhook_secret
+      req.headers.authorization !== config.bfd_webhook_secret
     ) {
       return res.status(401).send({ status: 401 });
     }
 
     const body = JSON.parse(req.body);
 
-    if (body.type !== 'upvote') {
+    if (body.type !== 'vote') {
       res.status(400).send({ status: 400, message: `Unknown type ${body.type}` });
-      return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
+      return logErrors(new Error(`[BFD Webhook] Unknown payload type "${body.type}"`));
     }
 
     if (body.bot === '201503408652419073') {
-      ddog.increment(`webhooks.topgg.octave`);
+      ddog.increment(`webhooks.bfd.octave`);
     } else {
-      ddog.increment(`webhooks.topgg.memer`);
+      ddog.increment(`webhooks.bfd.memer`);
     }
 
     await addLootbox(body.user);

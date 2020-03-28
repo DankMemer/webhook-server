@@ -1,5 +1,6 @@
 {
     "dblorg_webhook_secret": "",
+    "bfd_webhook_secret": "",
     "patreon_webhook_secret": "",
     "memer_secret": "",
     "patreonCampaignID": "",
