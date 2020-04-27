@@ -22,6 +22,8 @@ module.exports = (app, config) =>
 
     if (body.bot === '201503408652419073') {
       ddog.increment(`webhooks.topgg.octave`);
+    } else if (body.bot === '702604525529202749') {
+      ddog.increment(`webhooks.topgg.apex`);
     } else {
       ddog.increment(`webhooks.topgg.memer`);
     }
