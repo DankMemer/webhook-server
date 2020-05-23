@@ -26,8 +26,7 @@ module.exports = (app, config) =>
       ddog.increment(`webhooks.topgg.apex`);
     } else {
       ddog.increment(`webhooks.topgg.memer`);
+      await addLootbox(body.user);
     }
-
-    await addLootbox(body.user);
     res.status(200).send({ status: 200 });
   });
