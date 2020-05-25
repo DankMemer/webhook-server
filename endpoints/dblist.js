@@ -1,6 +1,6 @@
-const { parse } = require('querystring');
 const { addLootbox, mongo } = require('../db');
-const recentlyReceived = new Set();
+const { StatsD } = require('node-dogstatsd');
+const ddog = new StatsD();
 
 module.exports = (app, config) =>
   app.post('/dblistwebhook', async (req, res) => {
@@ -12,19 +12,10 @@ module.exports = (app, config) =>
       auth === config.dblcom_webhook_secret &&
       (Date.now() - 1000 * 120) < timestamp
     ) {
-      const body = parse(req.body);
-
-      if (recentlyReceived.has(body.id)) {
-        mongo.collection('duplicates').insertOne({ user: body.id, name: 'discordbotlist.com' });
-        return res.status(425).send({ status: 425 });
-      }
-
-      recentlyReceived.add(body.id);
-      setTimeout(() => {
-        recentlyReceived.delete(body.id);
-      }, 60 * 60 * 1000);
+      const body = JSON.parse(req.body);
   
       await addLootbox(body.id);
+      ddog.increment(`webhooks.dblcom`);
       res.status(200).send({ status: 200 });
     } else {
       res.status(401).send({ status: 401 });
