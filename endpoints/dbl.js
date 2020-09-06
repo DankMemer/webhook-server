@@ -22,7 +22,7 @@ module.exports = (app, config) =>
 
     if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
-      await addLootbox(body.user, 2);
+      await addLootbox(body.user, 'meme', 2);
     } else {
       ddog.increment(`webhooks.topgg.memer`);
       await addLootbox(body.user);
