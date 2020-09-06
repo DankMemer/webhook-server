@@ -26,6 +26,6 @@ module.exports = (app, config) =>
       ddog.increment(`webhooks.bfd.memer`);
     }
 
-    await addLootbox(body.user);
+    await addLootbox(body.user, 'meme', 1, true);
     res.status(200).send({ status: 200 });
   });

@@ -238,7 +238,8 @@ module.exports = async (req, res) => {
   await addLootbox(
     giftUserID || customerID,
     item.name.split(' ')[0].toLowerCase(),
-    Number(item.quantity)
+    Number(item.quantity),
+    false
   );
 
   const {
