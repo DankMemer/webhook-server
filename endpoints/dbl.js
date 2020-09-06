@@ -20,13 +20,13 @@ module.exports = (app, config) =>
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
-    if (body.bot === '201503408652419073') {
-      ddog.increment(`webhooks.topgg.octave`);
-    } else if (body.bot === '702604525529202749') {
-      ddog.increment(`webhooks.topgg.apex`);
+    if (body.isWeekend) {
+      ddog.increment(`webhooks.topgg.memer`);
+      await addLootbox(body.user, 2);
     } else {
       ddog.increment(`webhooks.topgg.memer`);
       await addLootbox(body.user);
     }
+
     res.status(200).send({ status: 200 });
   });
