@@ -14,7 +14,7 @@ module.exports = (app, config) =>
     ) {
       const body = JSON.parse(req.body);
   
-      await addLootbox(body.id, 'meme', 1, true);
+      await addLootbox(body.id, 'meme', 2, true);
       ddog.increment(`webhooks.dblcom`);
       res.status(200).send({ status: 200 });
     } else {
