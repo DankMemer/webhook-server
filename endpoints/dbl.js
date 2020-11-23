@@ -22,10 +22,10 @@ module.exports = (app, config) =>
 
     if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
-      await addLootbox(body.user, 'meme', 2, true);
+      await addLootbox(body.user, 'meme', 3, true);
     } else {
       ddog.increment(`webhooks.topgg.memer`);
-      await addLootbox(body.user, 'meme', 1, true);
+      await addLootbox(body.user, 'meme', 2, true);
     }
 
     res.status(200).send({ status: 200 });
