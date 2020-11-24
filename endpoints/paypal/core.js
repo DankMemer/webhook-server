@@ -233,6 +233,8 @@ module.exports = async (req, res) => {
 
       await sendNotification(giftUserID, 'gift', 'You received a gift!', `You received **${item.quantity} ${item.name}es** from ${customer.username}#${customer.discriminator}.`);
     }
+  } else {
+    await sendNotification(customerID, 'purchase', 'Your lootboxes are here!', `The **${item.quantity} ${item.name}es** you ordered are here! Thank your for your purchase!`);
   }
 
   await addLootbox(

@@ -1,4 +1,4 @@
-const { addLootbox, mongo } = require('../db');
+const { addLootbox, sendNotification, mongo } = require('../db');
 const { logErrors } = require('../util');
 const recentlyReceived = new Set();
 const { StatsD } = require('node-dogstatsd');
@@ -23,9 +23,11 @@ module.exports = (app, config) =>
     if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
       await addLootbox(body.user, 'meme', 3, true);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`3 meme boxes`** for voting on top.gg! Come back and do it again in 12 hours!');
     } else {
       ddog.increment(`webhooks.topgg.memer`);
       await addLootbox(body.user, 'meme', 2, true);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`2 meme boxes`** for voting on top.gg! Come back and do it again in 12 hours!');
     }
 
     res.status(200).send({ status: 200 });
