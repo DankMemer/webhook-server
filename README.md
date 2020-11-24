@@ -22,7 +22,7 @@ These instructions will get you a copy of the project up and running on your loc
 ## Built With
 
 * [Node.js](https://www.urbandictionary.com/define.php?term=eat%20my%20ass) - The javascript runtime
-* [Rethinkdb](https://ballandchainco.com/products/ema-sticker-pack) - Reliable noSQL database
+* [Rethinkdb](https://ballandchainco.com/products/ema-sticker-pack) - noSQL database
 * [Express.js](https://twitter.com/hashtag/eatmyass?lang=en) - Web framework for node.js
 
 ## Authors
