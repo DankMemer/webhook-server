@@ -218,7 +218,7 @@ module.exports = async (req, res) => {
 
   if (giftUserID) {
     const isValid = await lighttp
-      .get(`https://discordapp.com/api/v7/users/${giftUserID}`)
+      .get(`https://discord.com/api/v7/users/${giftUserID}`)
       .header('Authorization', `Bot ${config.botToken}`)
       .then(() => true)
       .catch(() => false);
@@ -227,7 +227,7 @@ module.exports = async (req, res) => {
       await sendNotification(customerID, 'gift', 'The user ID you tried to send a gift to is invalid.', 'The boxes have instead been sent to your inventory.');
     } else {
       const customer = await lighttp
-        .get(`https://discordapp.com/api/v7/users/${customerID}`)
+        .get(`https://discord.com/api/v7/users/${customerID}`)
         .header('Authorization', `Bot ${config.botToken}`)
         .then(res => res.body);
 
