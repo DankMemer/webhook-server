@@ -25,7 +25,7 @@ module.exports = (app, config) =>
 
     result.webhook.color = result.didAddBoxes ? 0x6CF59E : 0xCA2D36;
 
-    lighttp.post(`https://discordapp.com/api/v7/webhooks/${config.donor_webhookID}/${config.donor_webhook_token}`)
+    lighttp.post(`https://discord.com/api/v7/webhooks/${config.donor_webhookID}/${config.donor_webhook_token}`)
       .attach('payload_json', {
         content: '='.repeat(40),
         embeds: [ result.webhook, {
