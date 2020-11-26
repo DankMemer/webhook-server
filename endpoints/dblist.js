@@ -1,4 +1,4 @@
-const { addLootbox, sendNotification, mongo } = require('../db');
+const { addVote, sendNotification, mongo } = require('../db');
 const { StatsD } = require('node-dogstatsd');
 const ddog = new StatsD();
 
