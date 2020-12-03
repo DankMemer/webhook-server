@@ -22,12 +22,12 @@ module.exports = (app, config) =>
 
     if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
-      await addVote(body.user, 2000, 'banknote', 'meme', 2, false);
-      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`2 meme boxes, 2 banknotes, and 2k coins`** for voting on top.gg!');
+      await addVote(body.user, 5000, 'banknote', 'normie', 2, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`4 normie boxes, 4 banknotes, and 5k coins`** for voting on top.gg!');
     } else {
       ddog.increment(`webhooks.topgg.memer`);
-      await addVote(body.user, 1000, 'banknote', 'meme', 1, false);
-      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`meme box, bank note, and 1k coins`** for voting on top.gg!');
+      await addVote(body.user, 2500, 'banknote', 'normie', 2, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`2 normie boxes, 2 bank notes, and 2.5k coins`** for voting on top.gg!');
     }
 
     res.status(200).send({ status: 200 });
