@@ -22,7 +22,7 @@ module.exports = (app, config) =>
 
     if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
-      await addVote(body.user, 5000, 'banknote', 'normie', 2, false);
+      await addVote(body.user, 5000, 'banknote', 'normie', 4, false);
       await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`4 normie boxes, 4 banknotes, and 5k coins`** for voting on top.gg!');
     } else {
       ddog.increment(`webhooks.topgg.memer`);
