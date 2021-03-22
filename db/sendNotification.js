@@ -12,7 +12,7 @@ module.exports = async function sendNotification (id, type, title, message) {
   };
 
   await redis.publish(
-    'changes:user:0:notification',
+    'changes:user:1:notification',
     JSON.stringify({
       id,
       data: notification
