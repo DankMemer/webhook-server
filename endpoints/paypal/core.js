@@ -19,8 +19,10 @@ getBoxData()
     { Constants, boxes } = data
   ))
   .catch(err => sendWebhook({
-    title: 'Failed to request box data',
-    description: `${err.response ? err.response.statusCode : err.message}`
+    raw: {
+      title: 'Failed to request box data',
+      description: `${err.response ? err.response.statusCode : err.message}`
+    }
   }));
 
 const IGNORED_EVENTS = [
