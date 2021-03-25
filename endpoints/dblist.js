@@ -14,8 +14,8 @@ module.exports = (app, config) =>
     ) {
       const body = JSON.parse(req.body);
   
-      await addVote(body.id, 5000, 'horseshoe', 'banknote', 2, true);
-      await sendNotification(body.id, 'vote', 'Thank you for voting!', 'You just got your **`2 banknotes, 2 horseshoes, and 5k coins`** for voting on discordbotlist.com! (Extra 4k coins for supporting this growing site)');
+      await addVote(body.id, 20000, 'gift', 'normie', 1, true);
+      await sendNotification(body.id, 'vote', 'Thank you for voting!', 'You just got your **`1 Gift for a Friend, 1 Normie Box, and 20k coins`** for voting on discordbotlist.com! (Extra 4k coins for supporting this growing site)');
       ddog.increment(`webhooks.dblcom`);
       res.status(200).send({ status: 200 });
     } else {
