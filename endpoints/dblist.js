@@ -17,7 +17,7 @@ module.exports = (app, config) =>
     handleWebhook(body).catch(err => {
       sentry.captureException(err, {
         contexts: {
-          user: { id: body.user }
+          user: { id: body.id }
         }
       })
     });
@@ -33,7 +33,7 @@ async function handleWebhook(body) {
 
   sentry.captureMessage('Received dblcom webhook', {
     level: sentry.Severity.Log,
-    user: { id: body.user },
+    user: { id: body.id },
     contexts: {
       info: {
         duration: Date.now() - before,
