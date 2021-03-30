@@ -44,13 +44,12 @@ async function handleWebhook(body) {
     await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`1 Gift for a Friend, 1 Normie Box, and 20k coins`** for voting on top.gg!');
   }
 
-  sentry.captureMessage('Received webhook', {
+  sentry.captureMessage('Received topgg webhook', {
     level: sentry.Severity.Log,
     user: { id: body.user },
     contexts: {
       info: {
         duration: Date.now() - before,
-        type: 'topgg',
         body,
       }
     }
