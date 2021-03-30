@@ -18,7 +18,7 @@
   "homepage": "https://github.com/Dank-Memer/webhook-server#readme",
   "dependencies": {
     "@sentry/node": "^6.2.4",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "body-parser": "^1.18.2",
     "buffer-crc32": "^0.2.13",
     "express": "^4.16.3",
