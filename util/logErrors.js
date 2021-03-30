@@ -1,13 +1,9 @@
 const config = require('../config.json');
-const raven = require('raven');
-
-raven
-  .config(config.sentry)
-  .install();
+const sentry = require('@sentry/node');
 
 module.exports = function logErrors (err) {
   // May add webhooks to discord for this later, undecided right now
-  raven.captureException(err);
+  sentry.captureException(err);
   console.log(err);
   return null; // implicit null return for .catch clauses
 };
