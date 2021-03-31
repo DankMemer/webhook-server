@@ -252,7 +252,7 @@ module.exports = async (req, res) => {
   } = await mongo.collection('users').findOne({ _id: customerID }) || {};
 
   await mongo.collection('purchases').insertOne({
-    orderID: id,
+    orderID: body.resource.links.find(link => link.rel === 'up').href.split('/').pop(),
     captureID: transaction.payments.captures[0].id,
     amount: ({
       ...transaction.amount.breakdown,
