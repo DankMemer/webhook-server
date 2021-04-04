@@ -20,6 +20,14 @@ module.exports = (app, config) =>
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
+    handleWebhook(body).catch(err => {
+      sentry.captureException(err, {
+        contexts: {
+          user: { id: body.user }
+        }
+      })
+    });
+
     res.status(200).send({ status: 200 });
   });
 
