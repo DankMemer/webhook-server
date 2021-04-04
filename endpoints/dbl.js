@@ -32,8 +32,6 @@ module.exports = (app, config) =>
   });
 
 async function handleWebhook(body) {
-  const before = Date.now();
-
   if (body.isWeekend) {
     ddog.increment(`webhooks.topgg.memer`);
     await addVote(body.user, 40000, 'gift', 'normie', 2, false);
@@ -43,15 +41,4 @@ async function handleWebhook(body) {
     await addVote(body.user, 20000, 'gift', 'normie', 1, false);
     await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`1 Gift for a Friend, 1 Normie Box, and 20k coins`** for voting on top.gg!');
   }
-
-  sentry.captureMessage('Received topgg webhook', {
-    level: sentry.Severity.Log,
-    user: { id: body.user },
-    contexts: {
-      info: {
-        duration: Date.now() - before,
-        body,
-      }
-    }
-  });
 }

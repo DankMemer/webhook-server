@@ -25,20 +25,7 @@ module.exports = (app, config) =>
 
 
 async function handleWebhook(body) {
-  const before = Date.now();
-
   await addVote(body.id, 20000, 'gift', 'normie', 1, true);
   await sendNotification(body.id, 'vote', 'Thank you for voting!', 'You just got your **`1 Gift for a Friend, 1 Normie Box, and 20k coins`** for voting on discordbotlist.com! (Extra 4k coins for supporting this growing site)');
   ddog.increment(`webhooks.dblcom`);
-
-  sentry.captureMessage('Received dblcom webhook', {
-    level: sentry.Severity.Log,
-    user: { id: body.id },
-    contexts: {
-      info: {
-        duration: Date.now() - before,
-        body,
-      }
-    }
-  });
 }
