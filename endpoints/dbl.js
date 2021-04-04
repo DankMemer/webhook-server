@@ -20,25 +20,17 @@ module.exports = (app, config) =>
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
-    handleWebhook(body).catch(err => {
-      sentry.captureException(err, {
-        contexts: {
-          user: { id: body.user }
-        }
-      })
-    });
-
     res.status(200).send({ status: 200 });
   });
 
 async function handleWebhook(body) {
-  if (body.isWeekend) {
-    ddog.increment(`webhooks.topgg.memer`);
-    await addVote(body.user, 40000, 'gift', 'normie', 2, false);
-    await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`2 Gift for a Friend, 2 Normie Boxes, and 40k coins`** for voting on top.gg!');
-  } else {
-    ddog.increment(`webhooks.topgg.memer`);
-    await addVote(body.user, 20000, 'gift', 'normie', 1, false);
-    await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`1 Gift for a Friend, 1 Normie Box, and 20k coins`** for voting on top.gg!');
-  }
+ if (body.isWeekend) {
+      ddog.increment(`webhooks.topgg.memer`);
+      await addVote(body.user, 50000, 'banknote', 'alcohol', 6, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`6 Banknotes, 6 Alcohol, and 50k coins`** for voting on top.gg!');
+    } else {
+      ddog.increment(`webhooks.topgg.memer`);
+      await addVote(body.user, 25000, 'banknote', 'alcohol', 3, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`3 Banknotes, 3 Alcohol, and 25k coins`** for voting on top.gg!');
+    }
 }
