@@ -3,6 +3,16 @@ const _fetchUserQuery = require('./_fetchUserQuery.js');
 const r = require('./r.js');
 const redis = require('./redis');
 
+let currentRedisChannel = 0;
+const getRedisChannel = () => {
+  const channel = ++currentRedisChannel;
+  if (channel > 7) {
+    currentRedisChannel = 0;
+  }
+
+  return channel;
+}
+
 module.exports = async function sendNotification (id, type, title, message) {
   const notification = {
     type,
@@ -12,7 +22,7 @@ module.exports = async function sendNotification (id, type, title, message) {
   };
 
   await redis.publish(
-    'changes:user:1:notification',
+    `changes:user:${getRedisChannel()}:notification`,
     JSON.stringify({
       id,
       data: notification
