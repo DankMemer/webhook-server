@@ -6,7 +6,7 @@ const redis = require('./redis');
 let currentRedisChannel = 0;
 const getRedisChannel = () => {
   const channel = ++currentRedisChannel;
-  if (channel > 7) {
+  if (channel > 35) {
     currentRedisChannel = 0;
   }
 
