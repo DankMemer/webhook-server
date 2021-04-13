@@ -34,11 +34,11 @@ module.exports = (app, config) =>
 async function handleWebhook(body) {
  if (body.isWeekend) {
       ddog.increment(`webhooks.topgg.memer`);
-      await addVote(body.user, 50000, 'banknote', 'alcohol', 6, false);
-      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`6 Banknotes, 6 Alcohol, and 50k coins`** for voting on top.gg!');
+      await addVote(body.user, 50000, 'banknote', 'cheese', 8, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`8 Banknotes, 8 Cheese, and 50k coins`** for voting on top.gg!');
     } else {
       ddog.increment(`webhooks.topgg.memer`);
-      await addVote(body.user, 25000, 'banknote', 'alcohol', 3, false);
-      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`3 Banknotes, 3 Alcohol, and 25k coins`** for voting on top.gg!');
+      await addVote(body.user, 25000, 'banknote', 'cheese', 4, false);
+      await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`4 Banknotes, 4 Cheese, and 25k coins`** for voting on top.gg!');
     }
 }
