@@ -8,9 +8,9 @@ module.exports = async function addVote (id, coins = 1000, itemOne = 'pinkphalli
 
   return _saveQuery(_fetchUserQuery(id).merge({
     voteReminderWaiting: true,
-    pocket: r.row('pocket').default(0).add(50000),
+    pocket: r.row('pocket').default(0).add(coins),
     inventory: {
-        [itemOne]: r.row('inventory').default({}).getField('banknote').default(0).add(3),
+        [itemOne]: r.row('inventory').default({}).getField('adventureticket').default(0).add(itemAmount),
         [itemTwo]: r.row('inventory').default({}).getField('daily').default(0).add(1)
       },
     upvoted: true,
