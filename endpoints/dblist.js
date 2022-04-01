@@ -25,7 +25,7 @@ module.exports = (app, config) =>
 
 
 async function handleWebhook(body) {
-  await addVote(body.id, 30000, 'banknote', 'daily', 4, true);
-      await sendNotification(body.id, 'vote', 'Thank you for voting!', 'You just got your **`4 Banknotes, 1 Daily box, and 30k coins`** for voting on discordbotlist.com!');
+  await addVote(body.id, 25000, 'banknote', 'daily', 4, true);
+      await sendNotification(body.id, 'vote', 'Thank you for voting!', 'You just got your **`4 Banknotes, 1 Daily box, and 25k coins`** for voting on discordbotlist.com!');
   ddog.increment(`webhooks.dblcom`);
 }
