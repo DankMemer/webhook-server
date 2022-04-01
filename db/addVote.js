@@ -10,7 +10,7 @@ module.exports = async function addVote (id, coins = 1000, itemOne = 'pinkphalli
     voteReminderWaiting: true,
     pocket: r.row('pocket').default(0).add(coins),
     inventory: {
-        [itemOne]: r.row('inventory').default({}).getField('adventureticket').default(0).add(itemAmount),
+        [itemOne]: r.row('inventory').default({}).getField('banknote').default(0).add(itemAmount),
         [itemTwo]: r.row('inventory').default({}).getField('daily').default(0).add(1)
       },
     upvoted: true,
