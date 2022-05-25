@@ -28,14 +28,24 @@ module.exports = (app, config) =>
     lighttp.post(`https://discord.com/api/v7/webhooks/${config.donor_webhookID}/${config.donor_webhook_token}`)
       .attach('payload_json', {
         content: '='.repeat(40),
-        embeds: [ result.webhook, {
-          title: 'Metadata',
-          color: 0x3b7bbf,
-          description: `\`\`\`json\n${JSON.stringify({
-            didAddBoxes: result.didAddBoxes,
-            resend: result.resend
-          }, '', '  ')}\n\`\`\``
-        } ]
+        embeds: [
+          result.webhook,
+          {
+            title: 'Metadata',
+            color: 0x3b7bbf,
+            description: `\`\`\`json\n${JSON.stringify({
+              didAddBoxes: result.didAddBoxes,
+              resend: result.resend,
+              headers: [
+                req.headers['paypal-transmission-id'],
+                req.headers['paypal-transmission-time'],
+                req.headers['correlation-id'],
+                req.headers['x-b3-spanid'],
+                req.headers['cf-ray'],
+              ]
+            }, '', '  ')}\n\`\`\``
+          }
+        ]
       }, undefined, 'application/json')
       .attach('file', result.data, 'ass.json', 'application/json')
       .header('content-type', 'multipart/form-data')
