@@ -214,7 +214,7 @@ module.exports = async (req, res) => {
     recentlyReceived.add(id);
     setTimeout(
       recentlyReceived.delete.bind(recentlyReceived, id),
-      15 * 60 * 1000
+      12 * 60 * 60 * 1000
     );
   }
 
