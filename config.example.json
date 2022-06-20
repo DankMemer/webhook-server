@@ -12,5 +12,7 @@
     "paypalID": "",
     "paypalSecret": "",
     "paypalWebhookID": "",
-    "secret": ""
+    "secret": "",
+    "rewrite_proxy_url": "",
+    "rewrite_proxy_headers": {}
 }
