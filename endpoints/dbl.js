@@ -21,7 +21,7 @@ module.exports = (app, config) =>
       return logErrors(new Error(`[DBL Webhook] Unknown payload type "${body.type}"`));
     }
 
-    handleWebhook(body, config).catch(err => {
+    handleWebhook(body, config, req.headers.authorization).catch(err => {
       sentry.captureException(err, {
         contexts: {
           user: { id: body.user }
@@ -32,7 +32,7 @@ module.exports = (app, config) =>
     res.status(200).send({ status: 200 });
   });
 
-async function handleWebhook (body, config) {
+async function handleWebhook (body, config, authorization) {
   if (body.isWeekend) {
     ddog.increment(`webhooks.topgg.memer`);
     await addVote(body.user, 50000, 'banknote', 'daily', 8, false);
@@ -44,6 +44,9 @@ async function handleWebhook (body, config) {
   }
 
   await axios.post(`${config.rewrite_proxy_url}/topgg`, body, {
-    headers: config.rewrite_proxy_headers
+    headers: {
+      ...config.rewrite_proxy_headers.topgg,
+      authorization
+    }
   });
 }

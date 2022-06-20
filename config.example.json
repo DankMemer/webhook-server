@@ -14,5 +14,8 @@
     "paypalWebhookID": "",
     "secret": "",
     "rewrite_proxy_url": "",
-    "rewrite_proxy_headers": {}
+    "rewrite_proxy_headers": {
+        "topgg": {},
+        "dblcom": {}
+    }
 }
