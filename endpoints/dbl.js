@@ -43,7 +43,7 @@ async function handleWebhook (body, config) {
     await sendNotification(body.user, 'vote', 'Thank you for voting!', 'You just got your **`4 Banknotes, 1 Daily box, and 25k coins`** for voting on top.gg!');
   }
 
-  await axios.post(config.rewrite_proxy_url, body, {
+  await axios.post(`${config.rewrite_proxy_url}/topgg`, body, {
     headers: config.rewrite_proxy_headers
   });
 }
