@@ -21,7 +21,7 @@
     "axios": "^0.18.0",
     "body-parser": "^1.18.2",
     "buffer-crc32": "^0.2.13",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "ioredis": "^4.14.1",
     "kafkajs": "^1.15.0",
     "lighttp": "^1.2.0",
